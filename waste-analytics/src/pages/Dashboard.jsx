@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import { getTransactions } from '../data/dataStore';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Grid, Box, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Chip, Avatar } from '@mui/material';
-import { mockTransactions } from '../data/mockData';
+import { sub, isAfter, parseISO, startOfDay, isSameDay } from 'date-fns';
+import { motion } from 'framer-motion';
 import { wasteCategories } from '../data/wasteCategories';
 import WasteCategoryChart from '../components/Charts/WasteCategoryChart';
 import WasteTrendChart from '../components/Charts/WasteTrendChart';
@@ -13,7 +15,6 @@ import {
     CalendarToday,
     ArrowUpward
 } from '@mui/icons-material';
-import { sub, isAfter, parseISO, startOfDay } from 'date-fns';
 
 const StatCard = ({ title, value, unit, icon: Icon, gradient, percentage, delay }) => (
     <Paper
@@ -114,6 +115,11 @@ const StatCard = ({ title, value, unit, icon: Icon, gradient, percentage, delay 
 
 const Dashboard = () => {
     const [period, setPeriod] = useState('month');
+    const [transactions, setTransactions] = useState([]);
+
+    useEffect(() => {
+        setTransactions(getTransactions());
+    }, []);
 
     // --- Data Processing ---
     const kpiData = useMemo(() => {
@@ -126,19 +132,29 @@ const Dashboard = () => {
         // Filter Date Logic
         const today = startOfDay(new Date());
         let startDate;
+        let filteredTransactions = [];
 
-        if (period === 'week') {
-            startDate = sub(today, { days: 7 });
-        } else if (period === 'month') {
-            startDate = sub(today, { days: 30 });
-        } else if (period === 'year') {
-            startDate = sub(today, { days: 365 });
+        if (period === 'today') {
+            filteredTransactions = transactions.filter(t => {
+                const tDate = parseISO(t.date);
+                return isSameDay(tDate, new Date());
+            });
+        } else {
+            if (period === 'week') {
+                startDate = sub(today, { days: 7 });
+            } else if (period === 'month') {
+                startDate = sub(today, { days: 30 });
+            } else if (period === 'year') {
+                startDate = sub(today, { days: 365 });
+            }
+
+            filteredTransactions = transactions.filter(t => {
+                const tDate = parseISO(t.date);
+                // check if startDate is defined, otherwise return true (or handle logic)
+                // Existing logic only handled week/month/year.
+                return startDate ? isAfter(tDate, startDate) : true;
+            });
         }
-
-        const filteredTransactions = mockTransactions.filter(t => {
-            const tDate = parseISO(t.date);
-            return isAfter(tDate, startDate);
-        });
 
         filteredTransactions.forEach(t => {
             const weight = Number(t.weight);
@@ -183,7 +199,7 @@ const Dashboard = () => {
             trendData,
             topOffice: officeData.length > 0 ? officeData[0] : { name: 'N/A', value: 0 }
         };
-    }, [period]);
+    }, [period, transactions]);
 
     return (
         <Box sx={{
@@ -269,6 +285,7 @@ const Dashboard = () => {
                                     color: '#2e7d32'
                                 }}
                             >
+                                <MenuItem value="today">Today</MenuItem>
                                 <MenuItem value="week">This Week</MenuItem>
                                 <MenuItem value="month">This Month</MenuItem>
                                 <MenuItem value="year">This Year</MenuItem>
@@ -329,24 +346,30 @@ const Dashboard = () => {
                 {/* Charts Area */}
                 <Grid container spacing={4} sx={{ mb: 6 }}>
                     <Grid size={{ xs: 12 }}>
-                        <Paper sx={{
-                            p: 4,
-                            borderRadius: '24px',
-                            background: 'white',
-                            border: 'none',
-                            boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            '&::before': {
-                                content: '""',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                height: '4px',
-                                background: 'linear-gradient(90deg, #26a69a 0%, #00897b 100%)',
-                            },
-                        }}>
+                        <Paper
+                            component={motion.div}
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6 }}
+                            sx={{
+                                p: 4,
+                                borderRadius: '24px',
+                                background: 'white',
+                                border: 'none',
+                                boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '4px',
+                                    background: 'linear-gradient(90deg, #26a69a 0%, #00897b 100%)',
+                                },
+                            }}>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
                                 📈 Waste Generation Trend
                             </Typography>
@@ -354,25 +377,31 @@ const Dashboard = () => {
                         </Paper>
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <Paper sx={{
-                            p: 4,
-                            borderRadius: '24px',
-                            background: 'white',
-                            border: 'none',
-                            boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
-                            height: '100%',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            '&::before': {
-                                content: '""',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                height: '4px',
-                                background: 'linear-gradient(90deg, #ffa726 0%, #fb8c00 100%)',
-                            },
-                        }}>
+                        <Paper
+                            component={motion.div}
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6, delay: 0.4 }}
+                            sx={{
+                                p: 4,
+                                borderRadius: '24px',
+                                background: 'white',
+                                border: 'none',
+                                boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
+                                height: '100%',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '4px',
+                                    background: 'linear-gradient(90deg, #ffa726 0%, #fb8c00 100%)',
+                                },
+                            }}>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
                                 ♻️ Waste Composition
                             </Typography>
@@ -383,24 +412,30 @@ const Dashboard = () => {
 
                 <Grid container spacing={4}>
                     <Grid size={{ xs: 12 }}>
-                        <Paper sx={{
-                            p: 4,
-                            borderRadius: '24px',
-                            background: 'white',
-                            border: 'none',
-                            boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            '&::before': {
-                                content: '""',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                height: '4px',
-                                background: 'linear-gradient(90deg, #66bb6a 0%, #43a047 100%)',
-                            },
-                        }}>
+                        <Paper
+                            component={motion.div}
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6, delay: 0.6 }}
+                            sx={{
+                                p: 4,
+                                borderRadius: '24px',
+                                background: 'white',
+                                border: 'none',
+                                boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '4px',
+                                    background: 'linear-gradient(90deg, #66bb6a 0%, #43a047 100%)',
+                                },
+                            }}>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
                                 🏆 Top Waste Producing Offices
                             </Typography>

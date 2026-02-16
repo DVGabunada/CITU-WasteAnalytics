@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+import { addTransaction } from '../data/dataStore';
 import React, { useState } from 'react';
 import {
     Box,
@@ -30,14 +32,22 @@ const DataEntry = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Here we would submit to backend
-        console.log({
-            date,
-            office: selectedOffice,
-            category,
-            weight,
-            notes
-        });
+
+        if (!selectedOffice || !category || !weight) return;
+
+        const transaction = {
+            id: Date.now().toString(),
+            date: format(date, 'yyyy-MM-dd'),
+            officeId: selectedOffice.id,
+            officeName: selectedOffice.name,
+            category: category,
+            weight: Number(weight),
+            unit: 'kg',
+            notes: notes
+        };
+
+        addTransaction(transaction);
+        console.log('Transaction saved:', transaction);
 
         // Reset form
         setSelectedOffice(null);
@@ -292,7 +302,13 @@ const DataEntry = () => {
                     </form>
                 </Paper>
 
-                <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={6000}
+                    onClose={handleCloseSnackbar}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    sx={{ zIndex: 9999 }}
+                >
                     <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%', fontSize: '1.1rem', borderRadius: 2 }}>
                         Data recorded successfully!
                     </Alert>
