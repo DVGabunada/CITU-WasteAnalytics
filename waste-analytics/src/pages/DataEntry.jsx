@@ -38,6 +38,7 @@ const DataEntry = () => {
         const transaction = {
             id: Date.now().toString(),
             date: format(date, 'yyyy-MM-dd'),
+            submittedAt: new Date().toISOString(),
             officeId: selectedOffice.id,
             officeName: selectedOffice.name,
             category: category,

@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import DataEntry from './pages/DataEntry';
+import DataLogs from './pages/DataLogs';
 import React from 'react';
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="data-entry" element={<DataEntry />} />
+        <Route path="data-logs" element={<DataLogs />} />
       </Route>
     </Routes>
   );

@@ -23,7 +23,8 @@ import {
     Input as InputIcon,
     Timeline as TimelineIcon,
     BarChart as BarChartIcon,
-    Delete as DeleteIcon
+    Delete as DeleteIcon,
+    TableRows as TableRowsIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 260;
@@ -42,6 +43,7 @@ const Layout = () => {
     const menuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
         { text: 'Data Entry', icon: <InputIcon />, path: '/data-entry' },
+        { text: 'Data Logs', icon: <TableRowsIcon />, path: '/data-logs' },
         // { text: 'Office Comparison', icon: <BarChartIcon />, path: '/office-comparison' },
         // { text: 'Trends', icon: <TimelineIcon />, path: '/trends' },
     ];
