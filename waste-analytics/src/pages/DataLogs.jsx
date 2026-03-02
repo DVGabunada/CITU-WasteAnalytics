@@ -20,6 +20,7 @@ import {
     ListAlt as ListAltIcon,
     Search as SearchIcon,
 } from '@mui/icons-material';
+import { usePageTheme } from '../hooks/usePageTheme';
 import { getTransactions } from '../data/dataStore';
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -92,22 +93,17 @@ const DataLogs = () => {
     const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
-        <Box
-            sx={{
-                p: { xs: 2, sm: 3, md: 4 },
-                background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e8f5e9 100%)',
-                minHeight: '100vh',
-                position: 'relative',
-                '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0,
-                    height: '300px',
-                    background: 'linear-gradient(135deg, rgba(46,125,50,0.05) 0%, rgba(104,159,56,0.05) 100%)',
-                    borderRadius: '0 0 50% 50%',
-                    zIndex: 0,
-                },
-            }}
+        <Box sx={{
+            p: { xs: 2, sm: 3, md: 4 },
+            background: pt.pageBg,
+            minHeight: '100vh',
+            position: 'relative',
+            '&::before': {
+                content: '""', position: 'absolute',
+                top: 0, left: 0, right: 0, height: '300px',
+                background: pt.pageBeforeBg, zIndex: 0,
+            },
+        }}
         >
             <Box sx={{ position: 'relative', zIndex: 1, maxWidth: '1400px', mx: 'auto' }}>
 
@@ -125,7 +121,7 @@ const DataLogs = () => {
                                 sx={{
                                     fontWeight: 900,
                                     fontSize: { xs: '2.5rem', md: '3.5rem' },
-                                    background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #43a047 100%)',
+                                    background: pt.titleGradient,
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     backgroundClip: 'text',
@@ -134,7 +130,7 @@ const DataLogs = () => {
                             >
                                 Data Logs
                             </Typography>
-                            <Typography variant="body1" sx={{ color: '#558b2f', fontWeight: 500, mt: 0.5 }}>
+                            <Typography variant="body1" sx={{ color: pt.subtitleColor, fontWeight: 500, mt: 0.5 }}>
                                 All waste data entries recorded from the Data Entry page.
                             </Typography>
                         </Box>
@@ -144,37 +140,21 @@ const DataLogs = () => {
                     <Chip
                         icon={<ListAltIcon />}
                         label={`${filtered.length} record${filtered.length !== 1 ? 's' : ''} found`}
-                        sx={{
-                            mt: 2,
-                            bgcolor: 'white',
-                            color: '#2e7d32',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            py: 2.5,
-                            px: 1,
-                            boxShadow: '0 4px 12px rgba(46,125,50,0.1)',
-                            '& .MuiChip-icon': { color: '#43a047' },
-                        }}
+                        sx={{ ...pt.chipSx, mt: 2 }}
                     />
                 </Box>
 
                 {/* ── Table Card ── */}
-                <Paper
-                    elevation={0}
-                    sx={{
-                        borderRadius: '24px',
-                        boxShadow: '0 10px 40px rgba(46,125,50,0.12)',
-                        overflow: 'hidden',
-                        position: 'relative',
-                        '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0, left: 0, right: 0,
-                            height: '4px',
-                            background: 'linear-gradient(90deg, #66bb6a 0%, #43a047 100%)',
-                        },
-                    }}
-                >
+                <Paper elevation={0} sx={{
+                    borderRadius: '24px', overflow: 'hidden',
+                    position: 'relative',
+                    ...pt.cardSx,
+                    '&::before': {
+                        content: '""', position: 'absolute', top: 0, left: 0, right: 0,
+                        height: pt.accentBarH,
+                        background: 'linear-gradient(90deg, #69f0ae 0%, #43a047 100%)',
+                    },
+                }}>
                     {/* Search bar */}
                     <Box sx={{ px: 3, pt: 3, pb: 2 }}>
                         <TextField
@@ -186,13 +166,13 @@ const DataLogs = () => {
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchIcon sx={{ color: '#43a047' }} />
+                                        <SearchIcon sx={{ color: '#69f0ae' }} />
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{
                                 width: { xs: '100%', sm: 380 },
-                                '& .MuiOutlinedInput-root': { borderRadius: 3 },
+                                ...pt.inputSx,
                             }}
                         />
                     </Box>
@@ -208,12 +188,8 @@ const DataLogs = () => {
                                             sortDirection={orderBy === col.id ? order : false}
                                             sx={{
                                                 minWidth: col.minWidth,
-                                                bgcolor: '#f9fbe7',
-                                                fontWeight: 700,
-                                                color: '#2e7d32',
-                                                fontSize: '0.875rem',
-                                                borderBottom: '2px solid #c8e6c9',
-                                                py: 1.5,
+                                                ...pt.tableHeadSx,
+                                                fontWeight: 700, fontSize: '0.875rem', py: 1.5,
                                             }}
                                         >
                                             <TableSortLabel
@@ -241,19 +217,15 @@ const DataLogs = () => {
                                     paginated.map((row, idx) => (
                                         <TableRow
                                             key={row.id ?? idx}
-                                            hover
-                                            sx={{
-                                                '&:nth-of-type(even)': { bgcolor: '#f9fbe7' },
-                                                transition: 'background 0.15s',
-                                            }}
+                                            hover sx={pt.tableRowSx}
                                         >
                                             {/* Collection Date */}
-                                            <TableCell sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                                            <TableCell sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap', color: pt.tableCellColor }}>
                                                 {row.date ?? '—'}
                                             </TableCell>
 
                                             {/* Office */}
-                                            <TableCell sx={{ fontSize: '0.875rem' }}>
+                                            <TableCell sx={{ fontSize: '0.875rem', color: pt.tableCellColor }}>
                                                 {row.officeName ?? '—'}
                                             </TableCell>
 
@@ -273,12 +245,12 @@ const DataLogs = () => {
                                             </TableCell>
 
                                             {/* Weight */}
-                                            <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#2e7d32' }}>
+                                            <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.875rem', color: pt.tableWeightColor }}>
                                                 {row.weight != null ? `${row.weight} kg` : '—'}
                                             </TableCell>
 
                                             {/* Notes */}
-                                            <TableCell sx={{ fontSize: '0.875rem', color: '#546e7a', maxWidth: 220 }}>
+                                            <TableCell sx={{ fontSize: '0.875rem', color: pt.tableNoteColor, maxWidth: 220 }}>
                                                 {row.notes ? (
                                                     <Tooltip title={row.notes} placement="top-start">
                                                         <Box sx={{
@@ -308,7 +280,7 @@ const DataLogs = () => {
                         page={page}
                         onPageChange={(_, newPage) => setPage(newPage)}
                         onRowsPerPageChange={(e) => { setRowsPerPage(+e.target.value); setPage(0); }}
-                        sx={{ borderTop: '1px solid #e8f5e9' }}
+                        sx={pt.paginationSx}
                     />
                 </Paper>
             </Box>

@@ -21,6 +21,7 @@ import { Send as SendIcon, CalendarToday } from '@mui/icons-material';
 
 import { offices } from '../data/offices';
 import { wasteCategories } from '../data/wasteCategories';
+import { usePageTheme } from '../hooks/usePageTheme';
 
 const DataEntry = () => {
     const [date, setDate] = useState(new Date());
@@ -65,10 +66,12 @@ const DataEntry = () => {
         setOpenSnackbar(false);
     };
 
+    const pt = usePageTheme();
+
     return (
         <Box sx={{
             p: { xs: 2, sm: 3, md: 4 },
-            background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e8f5e9 100%)',
+            background: pt.pageBg,
             minHeight: '100vh',
             position: 'relative',
             '&::before': {
@@ -78,8 +81,7 @@ const DataEntry = () => {
                 left: 0,
                 right: 0,
                 height: '300px',
-                background: 'linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, rgba(104, 159, 56, 0.05) 100%)',
-                borderRadius: '0 0 50% 50%',
+                background: pt.pageBeforeBg,
                 zIndex: 0,
             },
         }}>
@@ -98,7 +100,7 @@ const DataEntry = () => {
                                 sx={{
                                     fontWeight: 900,
                                     fontSize: { xs: '2.5rem', md: '3.5rem' },
-                                    background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #43a047 100%)',
+                                    background: pt.titleGradient,
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     backgroundClip: 'text',
@@ -107,7 +109,7 @@ const DataEntry = () => {
                             >
                                 Record Waste Data
                             </Typography>
-                            <Typography variant="body1" sx={{ color: '#558b2f', fontWeight: 500, mt: 0.5 }}>
+                            <Typography variant="body1" sx={{ color: pt.subtitleColor, fontWeight: 500, mt: 0.5 }}>
                                 Enter daily waste collection info for each office.
                             </Typography>
                         </Box>
@@ -116,41 +118,20 @@ const DataEntry = () => {
                     <Chip
                         icon={<CalendarToday />}
                         label={new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        sx={{
-                            bgcolor: 'white',
-                            color: '#2e7d32',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            py: 2.5,
-                            px: 1,
-                            boxShadow: '0 4px 12px rgba(46, 125, 50, 0.1)',
-                            '& .MuiChip-icon': { color: '#43a047' },
-                            mt: 3
-                        }}
+                        sx={{ ...pt.chipSx, mt: 3 }}
                     />
                 </Box>
 
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: 6,
-                        borderRadius: '24px',
-                        background: 'white',
-                        border: 'none',
-                        boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: '4px',
-                            background: 'linear-gradient(90deg, #66bb6a 0%, #43a047 100%)',
-                        },
-                    }}
-                >
+                <Paper elevation={0} sx={{
+                    p: 6, borderRadius: '24px',
+                    ...pt.cardSx,
+                    position: 'relative', overflow: 'hidden',
+                    '&::before': {
+                        content: '""', position: 'absolute', top: 0, left: 0, right: 0,
+                        height: pt.accentBarH,
+                        background: 'linear-gradient(90deg, #69f0ae 0%, #43a047 100%)',
+                    },
+                }}>
                     <form onSubmit={handleSubmit}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             {/* Row 1: Date, Category, Weight */}
@@ -165,7 +146,14 @@ const DataEntry = () => {
                                                 textField: {
                                                     fullWidth: true,
                                                     variant: 'outlined',
-                                                    sx: { '& .MuiOutlinedInput-root': { borderRadius: 3 } }
+                                                    sx: {
+                                                        '& .MuiOutlinedInput-root': { borderRadius: 3, color: 'white', bgcolor: 'rgba(255,255,255,0.06)' },
+                                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
+                                                        '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.6)' },
+                                                        '& .MuiInputLabel-root.Mui-focused': { color: '#69f0ae' },
+                                                        '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#69f0ae' },
+                                                        '& .MuiSvgIcon-root': { color: '#69f0ae' },
+                                                    }
                                                 }
                                             }}
                                         />
@@ -181,7 +169,7 @@ const DataEntry = () => {
                                         onChange={(e) => setCategory(e.target.value)}
                                         required
                                         variant="outlined"
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                                        sx={pt.selectInputSx}
                                         SelectProps={{
                                             MenuProps: {
                                                 PaperProps: {
@@ -208,7 +196,7 @@ const DataEntry = () => {
                                         onChange={(e) => setWeight(e.target.value)}
                                         required
                                         variant="outlined"
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                                        sx={pt.selectInputSx}
                                     />
                                 </Grid>
                             </Grid>
@@ -231,7 +219,7 @@ const DataEntry = () => {
                                                 required
                                                 fullWidth
                                                 variant="outlined"
-                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                                                sx={pt.inputSx}
                                             />
                                         )}
                                         PaperComponent={({ children }) => (
@@ -259,7 +247,13 @@ const DataEntry = () => {
                                         label="Collected By (Optional)"
                                         placeholder="Name of staff/intern"
                                         variant="outlined"
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': { borderRadius: 3, color: 'white', bgcolor: 'rgba(255,255,255,0.06)' },
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
+                                            '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.6)' },
+                                            '& .MuiInputLabel-root.Mui-focused': { color: '#69f0ae' },
+                                            '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#69f0ae' },
+                                        }}
                                     />
                                 </Grid>
                             </Grid>

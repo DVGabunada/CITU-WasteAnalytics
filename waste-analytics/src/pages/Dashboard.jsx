@@ -7,6 +7,8 @@ import { wasteCategories } from '../data/wasteCategories';
 import WasteCategoryChart from '../components/Charts/WasteCategoryChart';
 import WasteTrendChart from '../components/Charts/WasteTrendChart';
 import TopOfficesChart from '../components/Charts/TopOfficesChart';
+import MascotBubble from '../components/MascotBubble';
+import { usePageTheme } from '../hooks/usePageTheme';
 import {
     DeleteOutline,
     Recycling,
@@ -201,21 +203,19 @@ const Dashboard = () => {
         };
     }, [period, transactions]);
 
+    const pt = usePageTheme();
+
     return (
         <Box sx={{
             p: { xs: 2, sm: 3, md: 4 },
-            background: 'linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e8f5e9 100%)',
+            background: pt.pageBg,
             minHeight: '100vh',
             position: 'relative',
             '&::before': {
                 content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
+                position: 'absolute', top: 0, left: 0, right: 0,
                 height: '300px',
-                background: 'linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, rgba(104, 159, 56, 0.05) 100%)',
-                borderRadius: '0 0 50% 50%',
+                background: pt.pageBeforeBg,
                 zIndex: 0,
             },
         }}>
@@ -234,7 +234,7 @@ const Dashboard = () => {
                                 sx={{
                                     fontWeight: 900,
                                     fontSize: { xs: '2.5rem', md: '3.5rem' },
-                                    background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #43a047 100%)',
+                                    background: pt.titleGradient,
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     backgroundClip: 'text',
@@ -243,7 +243,7 @@ const Dashboard = () => {
                             >
                                 Dashboard Overview
                             </Typography>
-                            <Typography variant="body1" sx={{ color: '#558b2f', fontWeight: 500, mt: 0.5 }}>
+                            <Typography variant="body1" sx={{ color: pt.subtitleColor, fontWeight: 500, mt: 0.5 }}>
                                 Waste generation analytics for the entire university
                             </Typography>
                         </Box>
@@ -260,30 +260,14 @@ const Dashboard = () => {
                         <Chip
                             icon={<CalendarToday />}
                             label={new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                            sx={{
-                                bgcolor: 'white',
-                                color: '#2e7d32',
-                                fontWeight: 600,
-                                fontSize: '0.9rem',
-                                py: 2.5,
-                                px: 1,
-                                boxShadow: '0 4px 12px rgba(46, 125, 50, 0.1)',
-                                '& .MuiChip-icon': { color: '#43a047' },
-                            }}
+                            sx={pt.chipSx}
                         />
 
                         <FormControl sx={{ minWidth: 180 }}>
                             <Select
                                 value={period}
                                 onChange={(e) => setPeriod(e.target.value)}
-                                sx={{
-                                    bgcolor: 'white',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 4px 12px rgba(46, 125, 50, 0.1)',
-                                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                                    fontWeight: 600,
-                                    color: '#2e7d32'
-                                }}
+                                sx={pt.selectSx}
                             >
                                 <MenuItem value="today">Today</MenuItem>
                                 <MenuItem value="week">This Week</MenuItem>
@@ -353,24 +337,16 @@ const Dashboard = () => {
                             viewport={{ once: true, margin: "-100px" }}
                             transition={{ duration: 0.6 }}
                             sx={{
-                                p: 4,
-                                borderRadius: '24px',
-                                background: 'white',
-                                border: 'none',
-                                boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
-                                position: 'relative',
-                                overflow: 'hidden',
+                                p: 4, borderRadius: '24px',
+                                ...pt.cardSx,
+                                position: 'relative', overflow: 'hidden',
                                 '&::before': {
-                                    content: '""',
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    height: '4px',
-                                    background: 'linear-gradient(90deg, #26a69a 0%, #00897b 100%)',
+                                    content: '""', position: 'absolute', top: 0, left: 0, right: 0,
+                                    height: pt.accentBarH,
+                                    background: 'linear-gradient(90deg, #69f0ae 0%, #26a69a 100%)',
                                 },
                             }}>
-                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: pt.chartTitleColor, mb: 3 }}>
                                 📈 Waste Generation Trend
                             </Typography>
                             <WasteTrendChart data={kpiData.trendData} />
@@ -384,25 +360,16 @@ const Dashboard = () => {
                             viewport={{ once: true, margin: "-100px" }}
                             transition={{ duration: 0.6, delay: 0.4 }}
                             sx={{
-                                p: 4,
-                                borderRadius: '24px',
-                                background: 'white',
-                                border: 'none',
-                                boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
-                                height: '100%',
-                                position: 'relative',
-                                overflow: 'hidden',
+                                p: 4, borderRadius: '24px',
+                                ...pt.cardSx,
+                                height: '100%', position: 'relative', overflow: 'hidden',
                                 '&::before': {
-                                    content: '""',
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    height: '4px',
+                                    content: '""', position: 'absolute', top: 0, left: 0, right: 0,
+                                    height: pt.accentBarH,
                                     background: 'linear-gradient(90deg, #ffa726 0%, #fb8c00 100%)',
                                 },
                             }}>
-                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: pt.chartTitleColor, mb: 3 }}>
                                 ♻️ Waste Composition
                             </Typography>
                             <WasteCategoryChart data={kpiData.categoryData} />
@@ -419,24 +386,16 @@ const Dashboard = () => {
                             viewport={{ once: true, margin: "-100px" }}
                             transition={{ duration: 0.6, delay: 0.6 }}
                             sx={{
-                                p: 4,
-                                borderRadius: '24px',
-                                background: 'white',
-                                border: 'none',
-                                boxShadow: '0 10px 40px rgba(46, 125, 50, 0.12)',
-                                position: 'relative',
-                                overflow: 'hidden',
+                                p: 4, borderRadius: '24px',
+                                ...pt.cardSx,
+                                position: 'relative', overflow: 'hidden',
                                 '&::before': {
-                                    content: '""',
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    height: '4px',
-                                    background: 'linear-gradient(90deg, #66bb6a 0%, #43a047 100%)',
+                                    content: '""', position: 'absolute', top: 0, left: 0, right: 0,
+                                    height: pt.accentBarH,
+                                    background: 'linear-gradient(90deg, #69f0ae 0%, #43a047 100%)',
                                 },
                             }}>
-                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: pt.chartTitleColor, mb: 3 }}>
                                 🏆 Top Waste Producing Offices
                             </Typography>
                             <TopOfficesChart data={kpiData.officeData} />
@@ -444,6 +403,13 @@ const Dashboard = () => {
                     </Grid>
                 </Grid>
             </Box>
+
+            {/* Mascot Dashboard Assistant */}
+            <MascotBubble
+                variant="corner"
+                size={110}
+                message={`Total waste recorded: ${kpiData.totalWaste} kg. Recycling rate: ${kpiData.recyclableRate}%. Keep monitoring! ♻️`}
+            />
         </Box>
     );
 };
