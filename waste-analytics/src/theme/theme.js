@@ -4,16 +4,16 @@ const theme = createTheme({
     palette: {
         mode: 'light',
         primary: {
-            main: '#2e7d32', // Green for eco-friendly vibe
-            light: '#60ad5e',
-            dark: '#005005',
+            main: '#7b1113', // CIT-U Maroon
+            light: '#a01518',
+            dark: '#5a0d0f',
             contrastText: '#ffffff',
         },
         secondary: {
-            main: '#0288d1', // Blue accent
-            light: '#5eb8ff',
-            dark: '#005b9f',
-            contrastText: '#ffffff',
+            main: '#e8b84b', // CIT-U Gold
+            light: '#f5d78a',
+            dark: '#c9a84c',
+            contrastText: '#3e0a0b',
         },
         background: {
             default: '#f4f6f8',

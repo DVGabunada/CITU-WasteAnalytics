@@ -222,12 +222,7 @@ const Dashboard = () => {
             <Box sx={{ position: 'relative', zIndex: 1 }}>
                 <Box sx={{ mb: 5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                        <Box sx={{
-                            width: 6,
-                            height: 48,
-                            background: 'linear-gradient(180deg, #2e7d32 0%, #43a047 100%)',
-                            borderRadius: '10px',
-                        }} />
+
                         <Box>
                             <Typography
                                 variant="h2"
@@ -287,7 +282,7 @@ const Dashboard = () => {
                             value={kpiData.totalWaste}
                             unit="kg"
                             icon={DeleteOutline}
-                            gradient="linear-gradient(135deg, #66bb6a 0%, #43a047 100%)"
+                            gradient="linear-gradient(135deg, #a01518 0%, #7b1113 100%)"
                             percentage={5.2}
                             delay={0}
                         />
@@ -343,7 +338,7 @@ const Dashboard = () => {
                                 '&::before': {
                                     content: '""', position: 'absolute', top: 0, left: 0, right: 0,
                                     height: pt.accentBarH,
-                                    background: 'linear-gradient(90deg, #69f0ae 0%, #26a69a 100%)',
+                                    background: 'linear-gradient(90deg, #e8b84b 0%, #7b1113 100%)',
                                 },
                             }}>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: pt.chartTitleColor, mb: 3 }}>
@@ -392,7 +387,7 @@ const Dashboard = () => {
                                 '&::before': {
                                     content: '""', position: 'absolute', top: 0, left: 0, right: 0,
                                     height: pt.accentBarH,
-                                    background: 'linear-gradient(90deg, #69f0ae 0%, #43a047 100%)',
+                                    background: 'linear-gradient(90deg, #e8b84b 0%, #a01518 100%)',
                                 },
                             }}>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: pt.chartTitleColor, mb: 3 }}>

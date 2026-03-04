@@ -23,7 +23,7 @@ import { triviaData } from '../data/triviaData';
 
 const bins = [
     {
-        color: '#43a047', bg: 'linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%)',
+        color: '#c62828', bg: 'linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%)',
         label: 'GREEN BIN', subtitle: 'Biodegradable',
         emoji: '🍃',
         items: ['Food scraps & leftovers', 'Fruit & vegetable peels', 'Garden waste & leaves', 'Coffee grounds / tea bags', 'Paper towels (soiled)'],
@@ -76,7 +76,7 @@ const pillars = [
         campus: '🏫 Campus example: Post waste segregation guides on every bin. Use consistent bin colors university-wide.',
     },
     {
-        label: 'SUSTAIN', tagline: 'Shitsuke', icon: SustainIcon, color: '#2e7d32', bg: '#c8e6c9',
+        label: 'SUSTAIN', tagline: 'Shitsuke', icon: SustainIcon, color: '#e8b84b', bg: '#fff8e1',
         description: 'Maintain discipline and commitment. Turn 5S practices into habits through training, monitoring, and accountability.',
         campus: '🏫 Campus example: Monthly 5S audits, orientation for new staff/students, this monitoring system!',
     },
@@ -133,13 +133,13 @@ const Awareness = () => {
                 {/* Header */}
                 <Box sx={{ mb: 6 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                        <Box sx={{ width: 6, height: 48, background: 'linear-gradient(180deg, #0288d1 0%, #43a047 100%)', borderRadius: '10px' }} />
+
                         <Box>
                             <Typography variant="h2" sx={{
                                 fontWeight: 900, fontSize: { xs: '2rem', md: '3rem' },
                                 background: darkMode
-                                    ? 'linear-gradient(135deg, #ffffff 0%, #80cbc4 50%, #69f0ae 100%)'
-                                    : 'linear-gradient(135deg, #01579b 0%, #0288d1 50%, #43a047 100%)',
+                                    ? 'linear-gradient(135deg, #ffffff 0%, #f5d78a 50%, #e8b84b 100%)'
+                                    : 'linear-gradient(135deg, #5a0d0f 0%, #7b1113 50%, #a01518 100%)',
                                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                                 letterSpacing: '-1px',
                             }}>
@@ -406,7 +406,7 @@ const Awareness = () => {
                                     transition: 'all 0.25s ease',
                                     '&:hover': {
                                         transform: 'translateY(-4px)',
-                                        background: darkMode ? 'rgba(105,240,174,0.08)' : '#f1f8e9',
+                                        background: darkMode ? 'rgba(232,184,75,0.08)' : '#fce4ec',
                                         border: darkMode ? '1px solid rgba(105,240,174,0.2)' : '1px solid rgba(46,125,50,0.2)',
                                     },
                                 }}>

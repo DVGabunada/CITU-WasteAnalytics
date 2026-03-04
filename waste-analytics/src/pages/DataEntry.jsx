@@ -67,6 +67,7 @@ const DataEntry = () => {
     };
 
     const pt = usePageTheme();
+    const { darkMode } = pt;
 
     return (
         <Box sx={{
@@ -88,12 +89,7 @@ const DataEntry = () => {
             <Box sx={{ position: 'relative', zIndex: 1, maxWidth: '1200px', mx: 'auto' }}>
                 <Box sx={{ mb: 5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                        <Box sx={{
-                            width: 6,
-                            height: 48,
-                            background: 'linear-gradient(180deg, #2e7d32 0%, #43a047 100%)',
-                            borderRadius: '10px',
-                        }} />
+
                         <Box>
                             <Typography
                                 variant="h2"
@@ -129,7 +125,7 @@ const DataEntry = () => {
                     '&::before': {
                         content: '""', position: 'absolute', top: 0, left: 0, right: 0,
                         height: pt.accentBarH,
-                        background: 'linear-gradient(90deg, #69f0ae 0%, #43a047 100%)',
+                        background: 'linear-gradient(90deg, #e8b84b 0%, #7b1113 100%)',
                     },
                 }}>
                     <form onSubmit={handleSubmit}>
@@ -146,14 +142,20 @@ const DataEntry = () => {
                                                 textField: {
                                                     fullWidth: true,
                                                     variant: 'outlined',
-                                                    sx: {
-                                                        '& .MuiOutlinedInput-root': { borderRadius: 3, color: 'white', bgcolor: 'rgba(255,255,255,0.06)' },
+                                                    sx: darkMode ? {
+                                                        '& .MuiOutlinedInput-root': { borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.06)' },
+                                                        '& .MuiInputBase-input': { color: 'white' },
                                                         '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
                                                         '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.6)' },
-                                                        '& .MuiInputLabel-root.Mui-focused': { color: '#69f0ae' },
-                                                        '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#69f0ae' },
-                                                        '& .MuiSvgIcon-root': { color: '#69f0ae' },
-                                                    }
+                                                        '& .MuiInputLabel-root.Mui-focused': { color: '#e8b84b' },
+                                                        '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e8b84b' },
+                                                        '& .MuiSvgIcon-root': { color: '#e8b84b' },
+                                                    } : {
+                                                        '& .MuiOutlinedInput-root': { borderRadius: 3 },
+                                                        '& .MuiInputLabel-root.Mui-focused': { color: '#7b1113' },
+                                                        '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#7b1113' },
+                                                        '& .MuiSvgIcon-root': { color: '#7b1113' },
+                                                    },
                                                 }
                                             }}
                                         />
@@ -247,13 +249,7 @@ const DataEntry = () => {
                                         label="Collected By (Optional)"
                                         placeholder="Name of staff/intern"
                                         variant="outlined"
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': { borderRadius: 3, color: 'white', bgcolor: 'rgba(255,255,255,0.06)' },
-                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
-                                            '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.6)' },
-                                            '& .MuiInputLabel-root.Mui-focused': { color: '#69f0ae' },
-                                            '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#69f0ae' },
-                                        }}
+                                        sx={pt.inputSx}
                                     />
                                 </Grid>
                             </Grid>
@@ -267,7 +263,7 @@ const DataEntry = () => {
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="Special events, cleanup drive, etc."
                                 variant="outlined"
-                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                                sx={{ ...pt.inputSx, '& .MuiOutlinedInput-root': { ...pt.inputSx?.['& .MuiOutlinedInput-root'], borderRadius: 3 } }}
                             />
 
                             <Button
@@ -281,12 +277,12 @@ const DataEntry = () => {
                                     py: 2,
                                     fontSize: '1.2rem',
                                     borderRadius: 4,
-                                    boxShadow: '0 8px 16px rgba(46, 125, 50, 0.24)',
-                                    background: 'linear-gradient(135deg, #43a047 0%, #2e7d32 100%)',
+                                    boxShadow: '0 8px 16px rgba(123,17,19,0.24)',
+                                    background: 'linear-gradient(135deg, #a01518 0%, #7b1113 100%)',
                                     '&:hover': {
-                                        background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)',
+                                        background: 'linear-gradient(135deg, #7b1113 0%, #5a0d0f 100%)',
                                         transform: 'translateY(-2px)',
-                                        boxShadow: '0 12px 20px rgba(46, 125, 50, 0.32)'
+                                        boxShadow: '0 12px 20px rgba(123,17,19,0.35)'
                                     },
                                     transition: 'all 0.3s ease'
                                 }}

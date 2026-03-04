@@ -24,7 +24,6 @@ import {
     QuestionAnswer as SurveyIcon,
     MenuBook as AwarenessIcon,
     ArrowBack as BackIcon,
-    Spa as EcoIcon,
     AdminPanelSettings as AdminIcon,
     BarChart as MonitorIcon,
     NotificationsActive as EngageIcon,
@@ -39,7 +38,7 @@ const navGroups = [
     {
         label: 'Monitoring',
         icon: MonitorIcon,
-        color: '#43a047',
+        color: '#e8b84b',
         items: [
             { text: 'Dashboard', icon: <DashboardIcon />, path: '/5s-system/dashboard' },
         ],
@@ -47,7 +46,7 @@ const navGroups = [
     {
         label: 'Admin',
         icon: AdminIcon,
-        color: '#0288d1',
+        color: '#f5a0a0',
         items: [
             { text: 'Data Entry', icon: <InputIcon />, path: '/5s-system/data-entry' },
             { text: 'Data Logs', icon: <TableRowsIcon />, path: '/5s-system/data-logs' },
@@ -56,7 +55,7 @@ const navGroups = [
     {
         label: 'Engage',
         icon: EngageIcon,
-        color: '#7b1fa2',
+        color: '#fce4ec',
         items: [
             { text: 'Survey', icon: <SurveyIcon />, path: '/5s-system/survey' },
             { text: 'Awareness', icon: <AwarenessIcon />, path: '/5s-system/awareness' },
@@ -73,12 +72,14 @@ const Layout = () => {
     const location = useLocation();
     const { darkMode, toggleDarkMode } = useThemeMode();
 
-    // Sidebar colours switch with darkMode
-    const sidebarBg = darkMode ? '#0d1f0f' : '#1a3a22';
-    const sidebarTag = darkMode ? '#69f0ae' : '#a5f3c4';
-    const sidebarMuted = darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.55)';
-    const sidebarHover = darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)';
-    const sidebarDivider = darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.15)';
+    // CIT-U maroon/gold sidebar palette
+    const sidebarBg = darkMode
+        ? 'linear-gradient(180deg, #1a0808 0%, #2d1010 100%)'
+        : 'linear-gradient(180deg, #5a0d0f 0%, #7b1113 100%)';
+    const sidebarGold = '#e8b84b';
+    const sidebarMuted = 'rgba(255,255,255,0.45)';
+    const sidebarHover = 'rgba(255,255,255,0.08)';
+    const sidebarDivider = 'rgba(255,255,255,0.1)';
 
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
@@ -88,22 +89,22 @@ const Layout = () => {
     };
 
     const drawer = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: sidebarBg }}>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', background: sidebarBg }}>
 
-            {/* Brand header */}
-            <Box sx={{ px: 2.5, py: 3 }}>
+            {/* Brand header — CIT logo */}
+            <Box sx={{ px: 2.5, py: 2.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
                     <Box
                         component="img"
-                        src="/Sprite Mascot.png"
-                        alt="Eco"
-                        sx={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(67,160,71,0.5))' }}
+                        src="/cit logo 3.png"
+                        alt="CIT-U Logo"
+                        sx={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.4))' }}
                     />
                     <Box>
-                        <Typography sx={{ fontWeight: 900, fontSize: '0.95rem', color: sidebarTag, lineHeight: 1.2 }}>
+                        <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: sidebarGold, lineHeight: 1.1 }}>
                             5S+ System
                         </Typography>
-                        <Typography sx={{ fontSize: '0.68rem', color: sidebarMuted, letterSpacing: '0.5px' }}>
+                        <Typography sx={{ fontSize: '0.65rem', color: sidebarMuted, letterSpacing: '0.5px', lineHeight: 1.3 }}>
                             CIT-U Waste Monitoring
                         </Typography>
                     </Box>
@@ -119,7 +120,7 @@ const Layout = () => {
                     sx={{
                         borderRadius: '12px', mb: 1,
                         color: sidebarMuted,
-                        '&:hover': { bgcolor: sidebarHover, color: '#a5d6a7' },
+                        '&:hover': { bgcolor: sidebarHover, color: '#fce4ec' },
                         gap: 1.5, py: 1,
                     }}
                 >
@@ -138,12 +139,10 @@ const Layout = () => {
                         <Box key={group.label} sx={{ mb: 2 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, mb: 1 }}>
                                 <GroupIcon sx={{ fontSize: 14, color: group.color }} />
-                                <Typography sx={
-                                    {
-                                        fontSize: '0.68rem', fontWeight: 800, color: group.color,
-                                        letterSpacing: '1.5px', textTransform: 'uppercase'
-                                    }
-                                }>
+                                <Typography sx={{
+                                    fontSize: '0.68rem', fontWeight: 800, color: group.color,
+                                    letterSpacing: '1.5px', textTransform: 'uppercase'
+                                }}>
                                     {group.label}
                                 </Typography>
                             </Box>
@@ -158,17 +157,18 @@ const Layout = () => {
                                                 sx={{
                                                     borderRadius: '12px',
                                                     py: 1,
+                                                    position: 'relative',
                                                     '&.Mui-selected': {
-                                                        bgcolor: `${group.color}22`,
-                                                        '&:hover': { bgcolor: `${group.color}30` },
-                                                        '& .MuiListItemIcon-root': { color: group.color },
+                                                        bgcolor: 'rgba(232,184,75,0.15)',
+                                                        '&:hover': { bgcolor: 'rgba(232,184,75,0.22)' },
+                                                        '& .MuiListItemIcon-root': { color: sidebarGold },
                                                         '& .MuiListItemText-primary': { color: '#ffffff', fontWeight: 700 },
                                                     },
                                                     '&:not(.Mui-selected)': {
                                                         '& .MuiListItemIcon-root': { color: 'rgba(255,255,255,0.35)' },
                                                         '& .MuiListItemText-primary': { color: 'rgba(255,255,255,0.6)' },
                                                         '&:hover': {
-                                                            bgcolor: 'rgba(255,255,255,0.05)',
+                                                            bgcolor: sidebarHover,
                                                             '& .MuiListItemIcon-root': { color: 'rgba(255,255,255,0.7)' },
                                                             '& .MuiListItemText-primary': { color: 'white' },
                                                         },
@@ -179,7 +179,7 @@ const Layout = () => {
                                                     <Box sx={{
                                                         position: 'absolute', left: 0,
                                                         width: 3, height: '60%', borderRadius: '0 4px 4px 0',
-                                                        bgcolor: group.color,
+                                                        bgcolor: sidebarGold,
                                                     }} />
                                                 )}
                                                 <ListItemIcon sx={{ minWidth: 36 }}>
@@ -206,8 +206,8 @@ const Layout = () => {
                 <Box
                     component="img" src="/Sprite Mascot.png" alt="Eco"
                     sx={{
-                        width: 44, height: 44, objectFit: 'contain',
-                        filter: 'drop-shadow(0 4px 10px rgba(67,160,71,0.4))',
+                        width: 40, height: 40, objectFit: 'contain',
+                        filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))',
                         animation: 'mascotBob 3s ease-in-out infinite',
                         '@keyframes mascotBob': {
                             '0%,100%': { transform: 'translateY(0)' },
@@ -216,7 +216,7 @@ const Layout = () => {
                     }}
                 />
                 <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#a5d6a7' }}>Eco</Typography>
+                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: sidebarGold }}>Eco</Typography>
                     <Typography sx={{ fontSize: '0.7rem', color: sidebarMuted }}>Your Sustainability Guide</Typography>
                 </Box>
 
@@ -226,10 +226,10 @@ const Layout = () => {
                         onClick={toggleDarkMode}
                         size="small"
                         sx={{
-                            bgcolor: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.15)',
-                            border: `1px solid ${darkMode ? 'rgba(105,240,174,0.3)' : 'rgba(255,255,255,0.3)'}`,
-                            color: darkMode ? '#69f0ae' : '#ffeb3b',
-                            '&:hover': { bgcolor: darkMode ? 'rgba(105,240,174,0.15)' : 'rgba(255,255,255,0.25)' },
+                            bgcolor: 'rgba(255,255,255,0.08)',
+                            border: `1px solid rgba(232,184,75,0.3)`,
+                            color: darkMode ? '#e8b84b' : '#ffeb3b',
+                            '&:hover': { bgcolor: 'rgba(232,184,75,0.15)' },
                             transition: 'all 0.3s ease',
                         }}
                     >
@@ -244,15 +244,14 @@ const Layout = () => {
         <Box sx={{ display: 'flex' }}>
             {/* Mobile hamburger */}
             {isMobile && (
-                <Box sx={{
-                    position: 'fixed', top: 12, left: 12, zIndex: 1300,
-                }}>
+                <Box sx={{ position: 'fixed', top: 12, left: 12, zIndex: 1300 }}>
                     <IconButton
                         onClick={handleDrawerToggle}
                         sx={{
-                            bgcolor: '#0d1f0f', color: '#69f0ae',
+                            background: 'linear-gradient(135deg, #5a0d0f 0%, #7b1113 100%)',
+                            color: '#e8b84b',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                            '&:hover': { bgcolor: '#1b3a1d' },
+                            '&:hover': { background: 'linear-gradient(135deg, #7b1113 0%, #a01518 100%)' },
                         }}
                     >
                         <MenuIcon />
@@ -260,10 +259,7 @@ const Layout = () => {
                 </Box>
             )}
 
-            <Box
-                component="nav"
-                sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
-            >
+            <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
                 {/* Mobile drawer */}
                 <Drawer
                     variant="temporary"
@@ -286,7 +282,7 @@ const Layout = () => {
                         '& .MuiDrawer-paper': {
                             boxSizing: 'border-box', width: drawerWidth,
                             borderRight: 'none',
-                            boxShadow: '4px 0 32px rgba(0,0,0,0.2)',
+                            boxShadow: '4px 0 32px rgba(0,0,0,0.25)',
                         },
                     }}
                     open

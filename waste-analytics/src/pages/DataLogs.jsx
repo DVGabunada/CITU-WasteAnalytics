@@ -26,7 +26,7 @@ import { getTransactions } from '../data/dataStore';
 
 const categoryColor = (cat) => {
     const map = {
-        'Biodegradable': '#2e7d32',
+        'Biodegradable': '#43a047',
         'Recyclable': '#1565c0',
         'Residual': '#6a1b9a',
         'Hazardous': '#b71c1c',
@@ -92,6 +92,8 @@ const DataLogs = () => {
     const sorted = [...filtered].sort(getComparator(order, orderBy));
     const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+    const pt = usePageTheme();
+
     return (
         <Box sx={{
             p: { xs: 2, sm: 3, md: 4 },
@@ -110,11 +112,7 @@ const DataLogs = () => {
                 {/* ── Header ── */}
                 <Box sx={{ mb: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                        <Box sx={{
-                            width: 6, height: 48,
-                            background: 'linear-gradient(180deg, #2e7d32 0%, #43a047 100%)',
-                            borderRadius: '10px',
-                        }} />
+
                         <Box>
                             <Typography
                                 variant="h2"
@@ -152,7 +150,7 @@ const DataLogs = () => {
                     '&::before': {
                         content: '""', position: 'absolute', top: 0, left: 0, right: 0,
                         height: pt.accentBarH,
-                        background: 'linear-gradient(90deg, #69f0ae 0%, #43a047 100%)',
+                        background: 'linear-gradient(90deg, #e8b84b 0%, #7b1113 100%)',
                     },
                 }}>
                     {/* Search bar */}
@@ -166,7 +164,7 @@ const DataLogs = () => {
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchIcon sx={{ color: '#69f0ae' }} />
+                                        <SearchIcon sx={{ color: '#e8b84b' }} />
                                     </InputAdornment>
                                 ),
                             }}

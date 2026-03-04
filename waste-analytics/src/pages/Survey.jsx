@@ -70,7 +70,7 @@ const ResultsTab = ({ responses }) => {
             {/* Summary KPIs */}
             <Grid container spacing={3}>
                 {[
-                    { label: 'Total Responses', value: total, emoji: '📋', color: '#2e7d32' },
+                    { label: 'Total Responses', value: total, emoji: '📋', color: '#7b1113' },
                     { label: 'Avg. Awareness Score', value: `${avgAwareness}/5`, emoji: '⭐', color: '#f57f17' },
                     { label: 'Always Segregate', value: `${pct(countBy(responses, 'segregationFreq', 'always'), total)}%`, emoji: '♻️', color: '#0288d1' },
                 ].map(kpi => (
@@ -90,7 +90,7 @@ const ResultsTab = ({ responses }) => {
 
             {/* Segregation breakdown */}
             <Paper sx={{ p: 3, borderRadius: '20px', boxShadow: '0 6px 24px rgba(46,125,50,0.1)' }}>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#7b1113', mb: 3 }}>
                     ♻️ Segregation Frequency Breakdown
                 </Typography>
                 {SEGREGATION_OPTIONS.map(opt => {
@@ -108,7 +108,7 @@ const ResultsTab = ({ responses }) => {
                                 sx={{
                                     height: 10, borderRadius: 5,
                                     bgcolor: 'rgba(46,125,50,0.1)',
-                                    '& .MuiLinearProgress-bar': { borderRadius: 5, bgcolor: '#43a047' },
+                                    '& .MuiLinearProgress-bar': { borderRadius: 5, bgcolor: '#a01518' },
                                 }}
                             />
                         </Box>
@@ -118,7 +118,7 @@ const ResultsTab = ({ responses }) => {
 
             {/* Top challenges */}
             <Paper sx={{ p: 3, borderRadius: '20px', boxShadow: '0 6px 24px rgba(46,125,50,0.1)' }}>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#7b1113', mb: 3 }}>
                     ⚠️ Top Reported Challenges
                 </Typography>
                 {CHALLENGE_OPTIONS.map(opt => {
@@ -147,15 +147,15 @@ const ResultsTab = ({ responses }) => {
             {/* Recent suggestions */}
             {responses.some(r => r.suggestion) && (
                 <Paper sx={{ p: 3, borderRadius: '20px', boxShadow: '0 6px 24px rgba(46,125,50,0.1)' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#7b1113', mb: 2 }}>
                         💡 Recent Suggestions
                     </Typography>
                     {responses.filter(r => r.suggestion).slice(-5).reverse().map((r, i) => (
                         <Box key={i} sx={{
-                            p: 2, borderRadius: '12px', bgcolor: '#f1f8e9',
-                            border: '1px solid #c8e6c9', mb: 1.5,
+                            p: 2, borderRadius: '12px', bgcolor: '#fce4ec',
+                            border: '1px solid #f8bbd0', mb: 1.5,
                         }}>
-                            <Typography variant="body2" sx={{ color: '#2e7d32', fontStyle: 'italic' }}>
+                            <Typography variant="body2" sx={{ color: '#7b1113', fontStyle: 'italic' }}>
                                 "{r.suggestion}"
                             </Typography>
                             <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
@@ -220,11 +220,7 @@ const Survey = () => {
                 {/* Header */}
                 <Box sx={{ mb: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                        <Box sx={{
-                            width: 6, height: 48,
-                            background: 'linear-gradient(180deg, #7b1fa2 0%, #ab47bc 100%)',
-                            borderRadius: '10px',
-                        }} />
+
                         <Box>
                             <Typography variant="h2" sx={{
                                 fontWeight: 900, fontSize: { xs: '2rem', md: '3rem' },
@@ -291,10 +287,10 @@ const Survey = () => {
                                         sx={{ width: 160, height: 160, objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(67,160,71,0.3))' }}
                                     />
                                     <Box sx={{ flex: 1 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 900, color: '#e8f5e9', mb: 2 }}>
+                                        <Typography variant="h4" sx={{ fontWeight: 900, color: darkMode ? '#e8f5e9' : '#4a148c', mb: 2 }}>
                                             👋 Hi there! I'm Eco.
                                         </Typography>
-                                        <Typography sx={{ color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, mb: 3, fontSize: '1.05rem' }}>
+                                        <Typography sx={{ color: darkMode ? 'rgba(255,255,255,0.6)' : '#37474f', lineHeight: 1.8, mb: 3, fontSize: '1.05rem' }}>
                                             I need your help to improve waste management at CIT-U! This short survey covers
                                             your waste segregation habits, awareness of the 5S+ program, and challenges you face.
                                             Your honest feedback will be used to improve our system.
@@ -302,7 +298,12 @@ const Survey = () => {
                                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
                                             {['~2 minutes', 'Anonymous', '5 questions'].map(tag => (
                                                 <Chip key={tag} label={tag} size="small"
-                                                    sx={{ bgcolor: 'rgba(206,147,216,0.15)', color: '#ce93d8', fontWeight: 700, border: '1px solid rgba(206,147,216,0.3)' }} />
+                                                    sx={{
+                                                        bgcolor: darkMode ? 'rgba(206,147,216,0.15)' : '#f3e5f5',
+                                                        color: darkMode ? '#ce93d8' : '#7b1fa2',
+                                                        fontWeight: 700,
+                                                        border: darkMode ? '1px solid rgba(206,147,216,0.3)' : 'none',
+                                                    }} />
                                             ))}
                                         </Box>
                                         <Button
@@ -367,7 +368,7 @@ const Survey = () => {
                                         <RadioGroup value={form.segregationFreq} onChange={handleChange('segregationFreq')}>
                                             {SEGREGATION_OPTIONS.map(opt => (
                                                 <FormControlLabel key={opt.value} value={opt.value} control={
-                                                    <Radio sx={{ '&.Mui-checked': { color: '#69f0ae' }, color: pt.radioColor }} />
+                                                    <Radio sx={{ '&.Mui-checked': { color: '#e8b84b' }, color: pt.radioColor }} />
                                                 } label={<Typography sx={{ color: pt.radioLabelColor }}>{opt.label}</Typography>} />
                                             ))}
                                         </RadioGroup>
@@ -467,31 +468,31 @@ const Survey = () => {
                             <Paper sx={{
                                 p: { xs: 3, md: 6 }, borderRadius: '24px', textAlign: 'center',
                                 boxShadow: darkMode ? '0 10px 40px rgba(0,0,0,0.3)' : '0 10px 40px rgba(46,125,50,0.15)',
-                                background: darkMode ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #f1f8e9 0%, #e8f5e9 100%)',
+                                background: darkMode ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #fce4ec 0%, #fce4ec 100%)',
                                 backdropFilter: darkMode ? 'blur(20px)' : 'none',
-                                border: darkMode ? '1px solid rgba(105,240,174,0.2)' : '2px solid #a5d6a7',
+                                border: darkMode ? '1px solid rgba(232,184,75,0.2)' : '2px solid #f8bbd0',
                             }}>
                                 <Box
                                     component="img" src="/Sprite Mascot.png" alt="Eco"
                                     sx={{ width: 180, height: 180, objectFit: 'contain', filter: 'drop-shadow(0 12px 32px rgba(67,160,71,0.3))', mb: 2 }}
                                 />
-                                <CheckIcon sx={{ fontSize: 64, color: '#69f0ae', mb: 2 }} />
-                                <Typography variant="h4" sx={{ fontWeight: 900, color: '#e8f5e9', mb: 2 }}>
+                                <CheckIcon sx={{ fontSize: 64, color: darkMode ? '#e8b84b' : '#7b1113', mb: 2 }} />
+                                <Typography variant="h4" sx={{ fontWeight: 900, color: darkMode ? '#fce4ec' : '#3e0a0b', mb: 2 }}>
                                     Thank you for your response! 🎉
                                 </Typography>
-                                <Typography sx={{ color: darkMode ? 'rgba(255,255,255,0.6)' : '#2e7d32', fontSize: '1.1rem', mb: 4, maxWidth: 480, mx: 'auto' }}>
+                                <Typography sx={{ color: darkMode ? 'rgba(255,255,255,0.6)' : '#7b1113', fontSize: '1.1rem', mb: 4, maxWidth: 480, mx: 'auto' }}>
                                     Your feedback is valuable and will be used to improve waste management practices across CIT-U.
                                 </Typography>
                                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
                                     <Button
                                         variant="outlined" onClick={() => { setStep('intro'); setForm({ segregationFreq: '', awarenessLevel: 3, challenge: '', suggestion: '', role: '' }); }}
-                                        sx={{ borderRadius: '14px', borderColor: '#2e7d32', color: '#2e7d32', px: 4 }}
+                                        sx={{ borderRadius: '14px', borderColor: '#7b1113', color: '#7b1113', px: 4 }}
                                     >
                                         Submit Another
                                     </Button>
                                     <Button
                                         variant="contained" onClick={() => setTab(1)}
-                                        sx={{ borderRadius: '14px', background: 'linear-gradient(135deg, #43a047 0%, #2e7d32 100%)', px: 4 }}
+                                        sx={{ borderRadius: '14px', background: 'linear-gradient(135deg, #a01518 0%, #7b1113 100%)', px: 4 }}
                                     >
                                         View Results
                                     </Button>

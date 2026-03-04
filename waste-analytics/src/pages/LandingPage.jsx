@@ -33,7 +33,7 @@ const pillars = [
         tagline: 'Seiri',
         icon: SortIcon,
         description: 'Remove unnecessary items from the workspace. Keep only what is needed for daily operations.',
-        color: '#e53935',
+        color: '#c62828',
         bg: 'linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%)',
         border: '#ef9a9a',
     },
@@ -42,45 +42,45 @@ const pillars = [
         tagline: 'Seiton',
         icon: SetIcon,
         description: 'Organize materials so everything has a designated place and can be found quickly.',
-        color: '#1565c0',
-        bg: 'linear-gradient(135deg, #bbdefb 0%, #90caf9 100%)',
-        border: '#90caf9',
+        color: '#e8b84b',
+        bg: 'linear-gradient(135deg, #fff8e1 0%, #ffe082 100%)',
+        border: '#ffe082',
     },
     {
         label: 'SHINE',
         tagline: 'Seiso',
         icon: ShineIcon,
         description: 'Clean and maintain the workplace. Inspect equipment and eliminate sources of contamination.',
-        color: '#f57f17',
-        bg: 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)',
-        border: '#fff176',
+        color: '#a01518',
+        bg: 'linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%)',
+        border: '#f48fb1',
     },
     {
         label: 'STANDARDIZE',
         tagline: 'Seiketsu',
         icon: StandardizeIcon,
         description: 'Establish uniform procedures and schedules to maintain the first three S principles.',
-        color: '#6a1b9a',
-        bg: 'linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%)',
-        border: '#ce93d8',
+        color: '#7b1113',
+        bg: 'linear-gradient(135deg, #fce4ec 0%, #ef9a9a 100%)',
+        border: '#ef9a9a',
     },
     {
         label: 'SUSTAIN',
         tagline: 'Shitsuke',
         icon: SustainIcon,
         description: 'Continuously monitor, train, and enforce discipline to maintain 5S standards long-term.',
-        color: '#2e7d32',
-        bg: 'linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%)',
-        border: '#a5d6a7',
+        color: '#c9a84c',
+        bg: 'linear-gradient(135deg, #fff8e1 0%, #ffd54f 100%)',
+        border: '#ffd54f',
     },
     {
         label: 'PLUS (+)',
         tagline: 'Safety & Eco',
         icon: PlusIcon,
         description: 'Safety, environmental management, and waste reduction — extending 5S beyond cleanliness.',
-        color: '#00695c',
-        bg: 'linear-gradient(135deg, #b2dfdb 0%, #80cbc4 100%)',
-        border: '#80cbc4',
+        color: '#5a0d0f',
+        bg: 'linear-gradient(135deg, #ffccbc 0%, #ff8a65 100%)',
+        border: '#ff8a65',
     },
 ];
 
@@ -92,7 +92,7 @@ const modules = [
         description: 'View real-time waste analytics, KPIs, trends by category, and office-level reporting.',
         icon: DashboardIcon,
         path: '/5s-system/dashboard',
-        gradient: 'linear-gradient(135deg, #43a047 0%, #1b5e20 100%)',
+        gradient: 'linear-gradient(135deg, #7b1113 0%, #5a0d0f 100%)',
         emoji: '📊',
     },
     {
@@ -100,7 +100,7 @@ const modules = [
         description: 'Learn proper waste segregation, explore the 5S+ framework, and discover trivia about sustainability.',
         icon: AwarenessIcon,
         path: '/5s-system/awareness',
-        gradient: 'linear-gradient(135deg, #0288d1 0%, #01579b 100%)',
+        gradient: 'linear-gradient(135deg, #a01518 0%, #7b1113 100%)',
         emoji: '📚',
     },
     {
@@ -108,7 +108,7 @@ const modules = [
         description: 'Share your feedback, report challenges, and help shape a better waste management system at CIT-U.',
         icon: SurveyIcon,
         path: '/5s-system/survey',
-        gradient: 'linear-gradient(135deg, #7b1fa2 0%, #4a148c 100%)',
+        gradient: 'linear-gradient(135deg, #e8b84b 0%, #c9a84c 100%)',
         emoji: '📝',
     },
 ];
@@ -134,13 +134,13 @@ const LandingPage = () => {
     }, []);
 
     return (
-        <Box sx={{ minHeight: '100vh', overflowX: 'hidden', bgcolor: '#0a1628' }}>
+        <Box sx={{ minHeight: '100vh', overflowX: 'hidden', bgcolor: '#1a0808' }}>
 
             {/* ── HERO SECTION ─────────────────────────────────────────── */}
             <Box
                 sx={{
                     minHeight: '100vh',
-                    background: 'linear-gradient(160deg, #0a1628 0%, #0d3b2e 40%, #1b5e20 100%)',
+                    background: 'linear-gradient(160deg, #1a0808 0%, #3d1010 40%, #5a0d0f 100%)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -155,35 +155,42 @@ const LandingPage = () => {
                 <Box sx={{
                     position: 'absolute', top: '10%', left: '5%',
                     width: 400, height: 400,
-                    background: 'radial-gradient(circle, rgba(67,160,71,0.15) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(232,184,75,0.12) 0%, transparent 70%)',
                     borderRadius: '50%', animation: 'pulse 6s ease-in-out infinite',
                     '@keyframes pulse': { '0%,100%': { transform: 'scale(1)', opacity: 0.5 }, '50%': { transform: 'scale(1.2)', opacity: 1 } },
                 }} />
                 <Box sx={{
                     position: 'absolute', bottom: '10%', right: '5%',
                     width: 500, height: 500,
-                    background: 'radial-gradient(circle, rgba(2,136,209,0.1) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(160,21,24,0.2) 0%, transparent 70%)',
                     borderRadius: '50%', animation: 'pulse 8s ease-in-out infinite reverse',
                 }} />
                 <Box sx={{
                     position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
                     width: 800, height: 800,
-                    background: 'radial-gradient(circle, rgba(46,125,50,0.05) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(232,184,75,0.04) 0%, transparent 70%)',
                     borderRadius: '50%',
                 }} />
 
-                {/* Top badge */}
-                <Chip
-                    icon={<SchoolIcon sx={{ color: '#a5d6a7 !important' }} />}
-                    label="Cebu Institute of Technology – University"
-                    sx={{
-                        mb: 3, bgcolor: 'rgba(255,255,255,0.08)',
-                        color: '#a5d6a7', fontWeight: 600,
-                        border: '1px solid rgba(165,214,167,0.3)',
-                        fontSize: '0.85rem',
-                        backdropFilter: 'blur(10px)',
-                    }}
-                />
+                {/* CIT-U Logo badge */}
+                <Box sx={{
+                    mb: 3, display: 'flex', alignItems: 'center', gap: 1.5,
+                    bgcolor: 'rgba(255,255,255,0.07)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(232,184,75,0.25)',
+                    borderRadius: '50px',
+                    px: 2.5, py: 1,
+                }}>
+                    <Box
+                        component="img"
+                        src="/cit logo 3.png"
+                        alt="CIT-U"
+                        sx={{ width: 28, height: 28, objectFit: 'contain' }}
+                    />
+                    <Typography sx={{ color: '#f5d78a', fontWeight: 600, fontSize: '0.85rem' }}>
+                        Cebu Institute of Technology – University
+                    </Typography>
+                </Box>
 
                 <Grid container spacing={6} alignItems="center" justifyContent="center" sx={{ maxWidth: 1200, width: '100%', zIndex: 1 }}>
 
@@ -193,7 +200,7 @@ const LandingPage = () => {
                             <Typography
                                 sx={{
                                     fontSize: { xs: '0.9rem', md: '1rem' },
-                                    color: '#69f0ae',
+                                    color: '#e8b84b',
                                     fontWeight: 700,
                                     letterSpacing: '3px',
                                     textTransform: 'uppercase',
@@ -215,7 +222,7 @@ const LandingPage = () => {
                                 Waste
                                 <Box component="span" sx={{
                                     display: 'block',
-                                    background: 'linear-gradient(135deg, #69f0ae 0%, #43a047 50%, #a5d6a7 100%)',
+                                    background: 'linear-gradient(135deg, #f5d78a 0%, #e8b84b 50%, #c9a84c 100%)',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     backgroundClip: 'text',
@@ -246,16 +253,16 @@ const LandingPage = () => {
                                     endIcon={<ArrowIcon />}
                                     onClick={() => navigate('/5s-system/dashboard')}
                                     sx={{
-                                        background: 'linear-gradient(135deg, #43a047 0%, #2e7d32 100%)',
+                                        background: 'linear-gradient(135deg, #a01518 0%, #7b1113 100%)',
                                         color: 'white',
                                         px: 4, py: 1.8,
                                         fontSize: '1.1rem',
                                         fontWeight: 700,
                                         borderRadius: '16px',
-                                        boxShadow: '0 8px 32px rgba(67,160,71,0.4)',
+                                        boxShadow: '0 8px 32px rgba(123,17,19,0.45)',
                                         '&:hover': {
-                                            background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)',
-                                            boxShadow: '0 12px 40px rgba(67,160,71,0.5)',
+                                            background: 'linear-gradient(135deg, #7b1113 0%, #5a0d0f 100%)',
+                                            boxShadow: '0 12px 40px rgba(123,17,19,0.55)',
                                             transform: 'translateY(-2px)',
                                         },
                                         transition: 'all 0.3s ease',
@@ -268,16 +275,16 @@ const LandingPage = () => {
                                     size="large"
                                     onClick={() => navigate('/5s-system/awareness')}
                                     sx={{
-                                        borderColor: 'rgba(165,214,167,0.5)',
-                                        color: '#a5d6a7',
+                                        borderColor: 'rgba(232,184,75,0.5)',
+                                        color: '#e8b84b',
                                         px: 4, py: 1.8,
                                         fontSize: '1.1rem',
                                         fontWeight: 600,
                                         borderRadius: '16px',
                                         backdropFilter: 'blur(10px)',
                                         '&:hover': {
-                                            borderColor: '#a5d6a7',
-                                            bgcolor: 'rgba(165,214,167,0.08)',
+                                            borderColor: '#e8b84b',
+                                            bgcolor: 'rgba(232,184,75,0.08)',
                                         },
                                     }}
                                 >
@@ -297,7 +304,7 @@ const LandingPage = () => {
                                     { value: '100%', label: 'Sustainability Focus' },
                                 ].map(stat => (
                                     <Box key={stat.label} sx={{ textAlign: 'center' }}>
-                                        <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#69f0ae' }}>
+                                        <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#e8b84b' }}>
                                             {stat.value}
                                         </Typography>
                                         <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
@@ -312,11 +319,11 @@ const LandingPage = () => {
                     {/* RIGHT: Mascot */}
                     <Grid size={{ xs: 12, md: 5 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                            {/* Rotating speech bubble */}
+                            {/* Speech bubble */}
                             <Box sx={{
-                                bgcolor: 'rgba(255,255,255,0.08)',
+                                bgcolor: 'rgba(255,255,255,0.07)',
                                 backdropFilter: 'blur(20px)',
-                                border: '1px solid rgba(165,214,167,0.3)',
+                                border: '1px solid rgba(232,184,75,0.3)',
                                 borderRadius: '20px 20px 4px 20px',
                                 p: 2.5, px: 3,
                                 maxWidth: 300,
@@ -327,7 +334,7 @@ const LandingPage = () => {
                                     to: { opacity: 1, transform: 'translateY(0)' },
                                 },
                             }}>
-                                <Typography sx={{ color: '#e8f5e9', fontWeight: 600, fontSize: '1rem' }}>
+                                <Typography sx={{ color: '#fce4ec', fontWeight: 600, fontSize: '1rem' }}>
                                     {mascotMessages[mascotMsg]}
                                 </Typography>
                             </Box>
@@ -341,7 +348,7 @@ const LandingPage = () => {
                                     width: { xs: 240, md: 340 },
                                     height: { xs: 240, md: 340 },
                                     objectFit: 'contain',
-                                    filter: 'drop-shadow(0 20px 40px rgba(67,160,71,0.4))',
+                                    filter: 'drop-shadow(0 20px 40px rgba(123,17,19,0.5))',
                                     animation: 'heroFloat 4s ease-in-out infinite',
                                     '@keyframes heroFloat': {
                                         '0%,100%': { transform: 'translateY(0) rotate(-2deg)' },
@@ -351,16 +358,19 @@ const LandingPage = () => {
                             />
 
                             {/* Mascot name badge */}
-                            <Chip
-                                icon={<EcoIcon sx={{ color: '#43a047 !important' }} />}
-                                label="Eco — Your Sustainability Guide"
-                                sx={{
-                                    bgcolor: 'rgba(255,255,255,0.08)',
-                                    color: '#a5d6a7', fontWeight: 600,
-                                    border: '1px solid rgba(165,214,167,0.25)',
-                                    backdropFilter: 'blur(10px)',
-                                }}
-                            />
+                            <Box sx={{
+                                display: 'flex', alignItems: 'center', gap: 1,
+                                bgcolor: 'rgba(255,255,255,0.07)',
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(232,184,75,0.25)',
+                                borderRadius: '50px',
+                                px: 2, py: 0.8,
+                            }}>
+                                <EcoIcon sx={{ color: '#e8b84b', fontSize: 18 }} />
+                                <Typography sx={{ color: '#f5d78a', fontWeight: 600, fontSize: '0.9rem' }}>
+                                    Eco — Your Sustainability Guide
+                                </Typography>
+                            </Box>
                         </Box>
                     </Grid>
                 </Grid>
@@ -378,20 +388,20 @@ const LandingPage = () => {
                     <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', letterSpacing: '2px', textTransform: 'uppercase' }}>
                         Scroll to explore
                     </Typography>
-                    <Box sx={{ color: 'rgba(165,214,167,0.6)', fontSize: '1.5rem' }}>↓</Box>
+                    <Box sx={{ color: 'rgba(232,184,75,0.6)', fontSize: '1.5rem' }}>↓</Box>
                 </Box>
             </Box>
 
             {/* ── 5S+ PILLARS SECTION ─────────────────────────────────── */}
             <Box sx={{
-                background: 'linear-gradient(180deg, #0d2818 0%, #0a1f14 100%)',
+                background: 'linear-gradient(180deg, #2d1010 0%, #1a0808 100%)',
                 py: { xs: 8, md: 12 }, px: { xs: 2, md: 6 },
             }}>
                 <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
                     <Box sx={{ textAlign: 'center', mb: 8 }}>
                         <Chip
                             label="Framework"
-                            sx={{ bgcolor: 'rgba(67,160,71,0.2)', color: '#69f0ae', fontWeight: 700, mb: 2, letterSpacing: '2px' }}
+                            sx={{ bgcolor: 'rgba(232,184,75,0.15)', color: '#e8b84b', fontWeight: 700, mb: 2, letterSpacing: '2px' }}
                         />
                         <Typography variant="h2" sx={{
                             color: 'white', fontWeight: 900,
@@ -399,7 +409,7 @@ const LandingPage = () => {
                         }}>
                             The{' '}
                             <Box component="span" sx={{
-                                background: 'linear-gradient(135deg, #69f0ae 0%, #43a047 100%)',
+                                background: 'linear-gradient(135deg, #f5d78a 0%, #e8b84b 100%)',
                                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                             }}>
                                 5S+ Framework
@@ -469,14 +479,14 @@ const LandingPage = () => {
 
             {/* ── MODULES SECTION ─────────────────────────────────────── */}
             <Box sx={{
-                background: 'linear-gradient(180deg, #0a1f14 0%, #061410 100%)',
+                background: 'linear-gradient(180deg, #1a0808 0%, #0d0404 100%)',
                 py: { xs: 8, md: 12 }, px: { xs: 2, md: 6 },
             }}>
                 <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
                     <Box sx={{ textAlign: 'center', mb: 8 }}>
                         <Chip
                             label="System Modules"
-                            sx={{ bgcolor: 'rgba(2,136,209,0.2)', color: '#81d4fa', fontWeight: 700, mb: 2, letterSpacing: '2px' }}
+                            sx={{ bgcolor: 'rgba(123,17,19,0.3)', color: '#f5a0a0', fontWeight: 700, mb: 2, letterSpacing: '2px' }}
                         />
                         <Typography variant="h2" sx={{
                             color: 'white', fontWeight: 900,
@@ -484,7 +494,7 @@ const LandingPage = () => {
                         }}>
                             Everything You Need to{' '}
                             <Box component="span" sx={{
-                                background: 'linear-gradient(135deg, #81d4fa 0%, #0288d1 100%)',
+                                background: 'linear-gradient(135deg, #f5d78a 0%, #e8b84b 100%)',
                                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                             }}>
                                 Act Now
@@ -516,7 +526,7 @@ const LandingPage = () => {
                                             '&:hover': {
                                                 transform: 'translateY(-16px) scale(1.02)',
                                                 boxShadow: '0 30px 80px rgba(0,0,0,0.4)',
-                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                border: '1px solid rgba(232,184,75,0.2)',
                                             },
                                             '&::before': {
                                                 content: '""',
@@ -543,7 +553,7 @@ const LandingPage = () => {
                                             <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.95rem', lineHeight: 1.8, mb: 3 }}>
                                                 {mod.description}
                                             </Typography>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#69f0ae', fontWeight: 700, fontSize: '0.9rem' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#e8b84b', fontWeight: 700, fontSize: '0.9rem' }}>
                                                 <Typography sx={{ color: 'inherit', fontWeight: 'inherit', fontSize: 'inherit' }}>
                                                     Open Module
                                                 </Typography>
@@ -560,7 +570,7 @@ const LandingPage = () => {
 
             {/* ── WASTE CATEGORIES QUICK GUIDE ────────────────────────── */}
             <Box sx={{
-                background: '#061410',
+                background: '#0d0404',
                 py: { xs: 6, md: 10 }, px: { xs: 2, md: 6 },
                 borderTop: '1px solid rgba(255,255,255,0.05)',
             }}>
@@ -594,7 +604,7 @@ const LandingPage = () => {
 
             {/* ── FOOTER ─────────────────────────────────────────────── */}
             <Box sx={{
-                background: '#040d09',
+                background: '#080202',
                 py: 5, px: { xs: 2, md: 6 },
                 borderTop: '1px solid rgba(255,255,255,0.05)',
             }}>
@@ -602,11 +612,11 @@ const LandingPage = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
                         <Box
                             component="img"
-                            src="/Sprite Mascot.png"
-                            alt="Eco"
-                            sx={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(67,160,71,0.3))' }}
+                            src="/cit logo 3.png"
+                            alt="CIT-U"
+                            sx={{ width: 36, height: 36, objectFit: 'contain', opacity: 0.8 }}
                         />
-                        <Typography sx={{ color: '#69f0ae', fontWeight: 900, fontSize: '1.2rem' }}>
+                        <Typography sx={{ color: '#e8b84b', fontWeight: 900, fontSize: '1.2rem' }}>
                             5S+ Waste Monitoring System
                         </Typography>
                     </Box>
