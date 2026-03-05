@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import {
     Box,
     Drawer,
@@ -23,18 +24,20 @@ import {
     TableRows as TableRowsIcon,
     QuestionAnswer as SurveyIcon,
     MenuBook as AwarenessIcon,
+    Quiz as QuizModeIcon,
     ArrowBack as BackIcon,
     AdminPanelSettings as AdminIcon,
     BarChart as MonitorIcon,
     NotificationsActive as EngageIcon,
     DarkMode as DarkModeIcon,
     LightMode as LightModeIcon,
+    Logout as LogoutIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 272;
 
-// ─── Nav structure ────────────────────────────────────────────────────────────
-const navGroups = [
+// ─── Admin nav groups ─────────────────────────────────────────────────────────
+const adminNavGroups = [
     {
         label: 'Monitoring',
         icon: MonitorIcon,
@@ -63,6 +66,20 @@ const navGroups = [
     },
 ];
 
+// ─── Guest nav groups ─────────────────────────────────────────────────────────
+const guestNavGroups = [
+    {
+        label: 'Learn & Engage',
+        icon: EngageIcon,
+        color: '#e8b84b',
+        items: [
+            { text: 'Awareness', icon: <AwarenessIcon />, path: '/5s-system/awareness' },
+            { text: 'Survey', icon: <SurveyIcon />, path: '/5s-system/survey' },
+            { text: '5S+ Quiz', icon: <QuizModeIcon />, path: '/5s-system/quiz' },
+        ],
+    },
+];
+
 // ─── Component ────────────────────────────────────────────────────────────────
 const Layout = () => {
     const theme = useTheme();
@@ -70,7 +87,9 @@ const Layout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const { isAdmin, isGuest, session, logout } = useAuth();
     const { darkMode, toggleDarkMode } = useThemeMode();
+    const navGroups = isAdmin ? adminNavGroups : guestNavGroups;
 
     // CIT-U maroon/gold sidebar palette
     const sidebarBg = darkMode
@@ -120,8 +139,15 @@ const Layout = () => {
                     sx={{
                         borderRadius: '12px', mb: 1,
                         color: sidebarMuted,
-                        '&:hover': { bgcolor: sidebarHover, color: '#fce4ec' },
                         gap: 1.5, py: 1,
+                        transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        '&:hover': {
+                            bgcolor: sidebarHover,
+                            color: '#fce4ec',
+                            transform: 'translateX(6px)',
+                            '& svg': { transform: 'scale(1.2) rotate(-8deg)', transition: 'all 0.3s ease' },
+                        },
+                        '& svg': { transition: 'all 0.3s ease' },
                     }}
                 >
                     <BackIcon sx={{ fontSize: 18 }} />
@@ -158,19 +184,51 @@ const Layout = () => {
                                                     borderRadius: '12px',
                                                     py: 1,
                                                     position: 'relative',
+                                                    overflow: 'hidden',
+                                                    // Smooth spring-like pop on hover
+                                                    transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                                    // Shimmer pseudo-element
+                                                    '&::after': {
+                                                        content: '""',
+                                                        position: 'absolute', inset: 0,
+                                                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%)',
+                                                        transform: 'translateX(-100%)',
+                                                        transition: 'transform 0.5s ease',
+                                                    },
+                                                    '&:hover::after': {
+                                                        transform: 'translateX(100%)',
+                                                    },
                                                     '&.Mui-selected': {
                                                         bgcolor: 'rgba(232,184,75,0.15)',
-                                                        '&:hover': { bgcolor: 'rgba(232,184,75,0.22)' },
+                                                        boxShadow: '0 0 0 1px rgba(232,184,75,0.2) inset',
+                                                        '&:hover': {
+                                                            bgcolor: 'rgba(232,184,75,0.22)',
+                                                            transform: 'translateX(5px) scale(1.02)',
+                                                        },
                                                         '& .MuiListItemIcon-root': { color: sidebarGold },
                                                         '& .MuiListItemText-primary': { color: '#ffffff', fontWeight: 700 },
                                                     },
                                                     '&:not(.Mui-selected)': {
-                                                        '& .MuiListItemIcon-root': { color: 'rgba(255,255,255,0.35)' },
-                                                        '& .MuiListItemText-primary': { color: 'rgba(255,255,255,0.6)' },
+                                                        '& .MuiListItemIcon-root': {
+                                                            color: 'rgba(255,255,255,0.35)',
+                                                            transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                                        },
+                                                        '& .MuiListItemText-primary': {
+                                                            color: 'rgba(255,255,255,0.6)',
+                                                            transition: 'all 0.25s ease',
+                                                        },
                                                         '&:hover': {
                                                             bgcolor: sidebarHover,
-                                                            '& .MuiListItemIcon-root': { color: 'rgba(255,255,255,0.7)' },
-                                                            '& .MuiListItemText-primary': { color: 'white' },
+                                                            transform: 'translateX(6px)',
+                                                            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                                                            '& .MuiListItemIcon-root': {
+                                                                color: sidebarGold,
+                                                                transform: 'scale(1.25) rotate(-5deg)',
+                                                            },
+                                                            '& .MuiListItemText-primary': {
+                                                                color: 'white',
+                                                                transform: 'translateX(2px)',
+                                                            },
                                                         },
                                                     },
                                                 }}
@@ -204,7 +262,7 @@ const Layout = () => {
             {/* Mascot footer + dark mode toggle */}
             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Box
-                    component="img" src="/Sprite Mascot.png" alt="Eco"
+                    component="img" src="/new mascot.png" alt="Eco"
                     sx={{
                         width: 40, height: 40, objectFit: 'contain',
                         filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))',
@@ -234,6 +292,23 @@ const Layout = () => {
                         }}
                     >
                         {darkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
+                    </IconButton>
+                </Tooltip>
+
+                {/* Logout */}
+                <Tooltip title="Logout" placement="top">
+                    <IconButton
+                        onClick={() => { logout(); navigate('/login'); }}
+                        size="small"
+                        sx={{
+                            bgcolor: 'rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(255,100,100,0.25)',
+                            color: 'rgba(255,150,150,0.8)',
+                            '&:hover': { bgcolor: 'rgba(255,100,100,0.12)', color: '#ff8a80' },
+                            transition: 'all 0.3s ease',
+                        }}
+                    >
+                        <LogoutIcon fontSize="small" />
                     </IconButton>
                 </Tooltip>
             </Box>

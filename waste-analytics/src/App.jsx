@@ -1,27 +1,44 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import DataEntry from './pages/DataEntry';
 import DataLogs from './pages/DataLogs';
 import Survey from './pages/Survey';
 import Awareness from './pages/Awareness';
+import QuizPage from './pages/QuizPage';
 import React from 'react';
 
 function App() {
   return (
     <Routes>
-      {/* Landing page — no sidebar */}
+      {/* Public pages */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
 
-      {/* 5S+ System — all pages with sidebar */}
-      <Route path="/5s-system" element={<Layout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="data-entry" element={<DataEntry />} />
-        <Route path="data-logs" element={<DataLogs />} />
-        <Route path="survey" element={<Survey />} />
+      {/* Protected 5S+ system — requires login */}
+      <Route
+        path="/5s-system"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        {/* Default redirect */}
+        <Route index element={<Navigate to="awareness" replace />} />
+
+        {/* Guest + Admin pages */}
         <Route path="awareness" element={<Awareness />} />
+        <Route path="survey" element={<Survey />} />
+        <Route path="quiz" element={<QuizPage />} />
+
+        {/* Admin-only pages */}
+        <Route path="dashboard" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
+        <Route path="data-entry" element={<ProtectedRoute adminOnly><DataEntry /></ProtectedRoute>} />
+        <Route path="data-logs" element={<ProtectedRoute adminOnly><DataLogs /></ProtectedRoute>} />
       </Route>
 
       {/* Fallback */}

@@ -251,7 +251,7 @@ const LandingPage = () => {
                                     variant="contained"
                                     size="large"
                                     endIcon={<ArrowIcon />}
-                                    onClick={() => navigate('/5s-system/dashboard')}
+                                    onClick={() => navigate('/login')}
                                     sx={{
                                         background: 'linear-gradient(135deg, #a01518 0%, #7b1113 100%)',
                                         color: 'white',
@@ -268,7 +268,7 @@ const LandingPage = () => {
                                         transition: 'all 0.3s ease',
                                     }}
                                 >
-                                    Enter System
+                                    Login / Sign Up
                                 </Button>
                                 <Button
                                     variant="outlined"
@@ -342,7 +342,7 @@ const LandingPage = () => {
                             {/* Mascot image */}
                             <Box
                                 component="img"
-                                src="/Sprite Mascot.png"
+                                src="/citmascot.png"
                                 alt="Eco Mascot"
                                 sx={{
                                     width: { xs: 240, md: 340 },

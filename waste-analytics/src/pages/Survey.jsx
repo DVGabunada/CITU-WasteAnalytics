@@ -13,6 +13,7 @@ import {
     EmojiObjects as TipIcon,
 } from '@mui/icons-material';
 import { usePageTheme } from '../hooks/usePageTheme';
+import { useAuth } from '../context/AuthContext';
 import MascotBubble from '../components/MascotBubble';
 import { addSurveyResponse, getSurveyResponses } from '../data/surveyStore';
 
@@ -178,6 +179,7 @@ const Survey = () => {
     const [snackbar, setSnackbar] = useState(false);
     const pt = usePageTheme();
     const { darkMode } = pt;
+    const { isGuest } = useAuth();
 
     const [form, setForm] = useState({
         segregationFreq: '',
@@ -260,7 +262,9 @@ const Survey = () => {
                         }}
                     >
                         <Tab icon={<SurveyIcon fontSize="small" />} iconPosition="start" label="Take Survey" />
-                        <Tab icon={<ResultsIcon fontSize="small" />} iconPosition="start" label="View Results" />
+                        {!isGuest && (
+                            <Tab icon={<ResultsIcon fontSize="small" />} iconPosition="start" label="View Results" />
+                        )}
                     </Tabs>
                 </Paper>
 
