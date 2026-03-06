@@ -261,9 +261,9 @@ const Awareness = () => {
                                 transition: 'background 0.5s ease, border-color 0.5s ease',
                             }}>
                                 <Box
-                                    component="img" src="/Sprite Mascot.png" alt="Eco"
+                                    component="img" src="/mascot think.png" alt="Eco"
                                     sx={{
-                                        width: 140, height: 140, objectFit: 'contain',
+                                        width: 220, height: 220, objectFit: 'contain',
                                         filter: `drop-shadow(0 8px 24px ${currentTrivia.color}40)`,
                                         animation: 'mascotBob 3s ease-in-out infinite',
                                         '@keyframes mascotBob': {

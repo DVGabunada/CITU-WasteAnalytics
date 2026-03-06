@@ -264,7 +264,7 @@ const Layout = () => {
                 <Box
                     component="img" src="/new mascot.png" alt="Eco"
                     sx={{
-                        width: 40, height: 40, objectFit: 'contain',
+                        width: 64, height: 64, objectFit: 'contain',
                         filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))',
                         animation: 'mascotBob 3s ease-in-out infinite',
                         '@keyframes mascotBob': {

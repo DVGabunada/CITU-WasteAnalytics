@@ -4,7 +4,7 @@ import { Box, Typography, Paper, Fade } from '@mui/material';
 const MascotBubble = ({
     message = "Hi! I'm here to help you with waste management!",
     variant = 'inline', // 'inline' | 'corner'
-    size = 120,
+    size = 180,
 }) => {
     const [visible, setVisible] = useState(true);
 
@@ -71,7 +71,7 @@ const MascotBubble = ({
                 {/* Mascot image */}
                 <Box
                     component="img"
-                    src="/Sprite Mascot.png"
+                    src="/mascot answer.png"
                     alt="Eco Mascot"
                     sx={{
                         width: size,

@@ -345,8 +345,8 @@ const LandingPage = () => {
                                 src="/citmascot.png"
                                 alt="Eco Mascot"
                                 sx={{
-                                    width: { xs: 240, md: 340 },
-                                    height: { xs: 240, md: 340 },
+                                    width: { xs: 300, md: 460 },
+                                    height: { xs: 300, md: 460 },
                                     objectFit: 'contain',
                                     filter: 'drop-shadow(0 20px 40px rgba(123,17,19,0.5))',
                                     animation: 'heroFloat 4s ease-in-out infinite',

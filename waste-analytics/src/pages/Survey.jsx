@@ -287,8 +287,8 @@ const Survey = () => {
                             }}>
                                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, alignItems: 'center' }}>
                                     <Box
-                                        component="img" src="/Sprite Mascot.png" alt="Eco"
-                                        sx={{ width: 160, height: 160, objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(67,160,71,0.3))' }}
+                                        component="img" src="/mascot think.png" alt="Eco"
+                                        sx={{ width: 240, height: 240, objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(67,160,71,0.3))' }}
                                     />
                                     <Box sx={{ flex: 1 }}>
                                         <Typography variant="h4" sx={{ fontWeight: 900, color: darkMode ? '#e8f5e9' : '#4a148c', mb: 2 }}>
@@ -477,8 +477,8 @@ const Survey = () => {
                                 border: darkMode ? '1px solid rgba(232,184,75,0.2)' : '2px solid #f8bbd0',
                             }}>
                                 <Box
-                                    component="img" src="/Sprite Mascot.png" alt="Eco"
-                                    sx={{ width: 180, height: 180, objectFit: 'contain', filter: 'drop-shadow(0 12px 32px rgba(67,160,71,0.3))', mb: 2 }}
+                                    component="img" src="/mascot think.png" alt="Eco"
+                                    sx={{ width: 260, height: 260, objectFit: 'contain', filter: 'drop-shadow(0 12px 32px rgba(67,160,71,0.3))', mb: 2 }}
                                 />
                                 <CheckIcon sx={{ fontSize: 64, color: darkMode ? '#e8b84b' : '#7b1113', mb: 2 }} />
                                 <Typography variant="h4" sx={{ fontWeight: 900, color: darkMode ? '#fce4ec' : '#3e0a0b', mb: 2 }}>
