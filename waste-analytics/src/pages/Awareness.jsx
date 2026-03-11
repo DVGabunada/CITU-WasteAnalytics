@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Box, Typography, Paper, Grid, Card, CardContent,
     Chip, Button, Divider, IconButton, Tooltip,
@@ -18,6 +18,22 @@ import {
 import { usePageTheme } from '../hooks/usePageTheme';
 import MascotBubble from '../components/MascotBubble';
 import { triviaData } from '../data/triviaData';
+
+// ─── Scroll-reveal hook ───────────────────────────────────────────────────────
+const useInView = (options = {}) => {
+    const ref = useRef(null);
+    const [inView, setInView] = useState(false);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(([entry]) => {
+            setInView(entry.isIntersecting);
+        }, { threshold: 0.1, ...options });
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, []);
+    return [ref, inView];
+};
 
 // ─── Bin Guide ────────────────────────────────────────────────────────────────
 
@@ -110,6 +126,11 @@ const Awareness = () => {
     const pt = usePageTheme();
     const { darkMode } = pt;
 
+    const [binsRef, binsInView] = useInView();
+    const [triviaRef, triviaInView] = useInView();
+    const [pillarsRef, pillarsInView] = useInView();
+    const [tipsRef, tipsInView] = useInView();
+
     const changeTrivia = (dir) => {
         setTriviaAnimating(true);
         setTimeout(() => {
@@ -156,228 +177,276 @@ const Awareness = () => {
 
                 {/* ── SECTION 1: WASTE BIN GUIDE ── */}
                 <Box sx={{ mb: 8 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+                    <Box sx={{
+                        opacity: binsInView ? 1 : 0,
+                        transform: binsInView ? 'translateY(0)' : 'translateY(36px)',
+                        transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1)',
+                        display: 'flex', alignItems: 'center', gap: 2, mb: 4,
+                    }}>
                         <Typography variant="h4" sx={{ fontWeight: 900, color: pt.sectionTitleColor }}>
                             🗑️ Waste Segregation Guide
                         </Typography>
                     </Box>
-                    <Typography sx={{ color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem', maxWidth: 700 }}>
+                    <Typography sx={{
+                        opacity: binsInView ? 1 : 0,
+                        transform: binsInView ? 'translateY(0)' : 'translateY(24px)',
+                        transition: 'opacity 0.7s ease 0.08s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.08s',
+                        color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem', maxWidth: 700,
+                    }}>
                         Use the right bin for each type of waste. Proper segregation keeps recyclables clean and hazardous materials safe.
                     </Typography>
 
-                    <Grid container spacing={3}>
+                    <Grid container spacing={3} ref={binsRef}>
                         {bins.map((bin, i) => (
                             <Grid key={bin.label} size={{ xs: 12, sm: 6, xl: 3 }}>
-                                <Card sx={{
-                                    height: '100%', borderRadius: '24px',
-                                    border: `2px solid ${bin.color}40`,
-                                    boxShadow: `0 8px 32px ${bin.color}${darkMode ? '15' : '20'}`,
-                                    background: pt.cardBg,
-                                    backdropFilter: pt.cardBackdropFilter,
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': { transform: 'translateY(-8px)', boxShadow: `0 20px 48px ${bin.color}30` },
-                                    animation: `cardIn 0.5s ease-out ${i * 0.1}s backwards`,
-                                    '@keyframes cardIn': {
-                                        from: { opacity: 0, transform: 'translateY(20px)' },
-                                        to: { opacity: 1, transform: 'translateY(0)' },
-                                    },
+                                <Box sx={{
+                                    opacity: binsInView ? 1 : 0,
+                                    transform: binsInView ? 'translateY(0)' : 'translateY(50px)',
+                                    transition: `opacity 0.65s ease ${0.1 * i}s, transform 0.65s cubic-bezier(0.22,1,0.36,1) ${0.1 * i}s`,
                                 }}>
-                                    <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                        {/* Bin header */}
-                                        <Box sx={{
-                                            background: bin.bg, p: 3, borderRadius: '22px 22px 0 0',
-                                            display: 'flex', alignItems: 'center', gap: 2,
-                                        }}>
-                                            <Typography sx={{ fontSize: '2.5rem' }}>{bin.emoji}</Typography>
-                                            <Box>
-                                                <Typography sx={{ fontWeight: 900, fontSize: '0.85rem', color: bin.color, letterSpacing: '1px' }}>
-                                                    {bin.label}
-                                                </Typography>
-                                                <Typography sx={{ fontWeight: 700, color: bin.color, fontSize: '1.1rem' }}>
-                                                    {bin.subtitle}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-
-                                        <Box sx={{ p: 2.5, flex: 1 }}>
-                                            {bin.items.map(item => (
-                                                <Box key={item} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1 }}>
-                                                    <Box sx={{
-                                                        width: 8, height: 8, borderRadius: '50%',
-                                                        bgcolor: bin.color, flexShrink: 0, mt: '6px',
-                                                    }} />
-                                                    <Typography variant="body2" sx={{ color: pt.bodyTextColor, lineHeight: 1.5 }}>
-                                                        {item}
+                                    <Card sx={{
+                                        height: '100%', borderRadius: '24px',
+                                        border: `2px solid ${bin.color}40`,
+                                        boxShadow: `0 8px 32px ${bin.color}${darkMode ? '15' : '20'}`,
+                                        background: pt.cardBg,
+                                        backdropFilter: pt.cardBackdropFilter,
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': { transform: 'translateY(-8px)', boxShadow: `0 20px 48px ${bin.color}30` },
+                                        animation: `cardIn 0.5s ease-out ${i * 0.1}s backwards`,
+                                        '@keyframes cardIn': {
+                                            from: { opacity: 0, transform: 'translateY(20px)' },
+                                            to: { opacity: 1, transform: 'translateY(0)' },
+                                        },
+                                    }}>
+                                        <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                            {/* Bin header */}
+                                            <Box sx={{
+                                                background: bin.bg, p: 3, borderRadius: '22px 22px 0 0',
+                                                display: 'flex', alignItems: 'center', gap: 2,
+                                            }}>
+                                                <Typography sx={{ fontSize: '2.5rem' }}>{bin.emoji}</Typography>
+                                                <Box>
+                                                    <Typography sx={{ fontWeight: 900, fontSize: '0.85rem', color: bin.color, letterSpacing: '1px' }}>
+                                                        {bin.label}
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: 700, color: bin.color, fontSize: '1.1rem' }}>
+                                                        {bin.subtitle}
                                                     </Typography>
                                                 </Box>
-                                            ))}
-                                        </Box>
-
-                                        {/* Tip */}
-                                        <Box sx={{
-                                            m: 2, p: 2, borderRadius: '12px',
-                                            bgcolor: `${bin.color}10`, border: `1px solid ${bin.color}25`,
-                                        }}>
-                                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                                                <TipIcon sx={{ color: bin.color, fontSize: 18, flexShrink: 0, mt: '2px' }} />
-                                                <Typography variant="caption" sx={{ color: bin.color, fontWeight: 600, lineHeight: 1.5 }}>
-                                                    {bin.tip}
-                                                </Typography>
                                             </Box>
-                                        </Box>
-                                    </CardContent>
-                                </Card>
+
+                                            <Box sx={{ p: 2.5, flex: 1 }}>
+                                                {bin.items.map(item => (
+                                                    <Box key={item} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1 }}>
+                                                        <Box sx={{
+                                                            width: 8, height: 8, borderRadius: '50%',
+                                                            bgcolor: bin.color, flexShrink: 0, mt: '6px',
+                                                        }} />
+                                                        <Typography variant="body2" sx={{ color: pt.bodyTextColor, lineHeight: 1.5 }}>
+                                                            {item}
+                                                        </Typography>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+
+                                            {/* Tip */}
+                                            <Box sx={{
+                                                m: 2, p: 2, borderRadius: '12px',
+                                                bgcolor: `${bin.color}10`, border: `1px solid ${bin.color}25`,
+                                            }}>
+                                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                                                    <TipIcon sx={{ color: bin.color, fontSize: 18, flexShrink: 0, mt: '2px' }} />
+                                                    <Typography variant="caption" sx={{ color: bin.color, fontWeight: 600, lineHeight: 1.5 }}>
+                                                        {bin.tip}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                </Box>
                             </Grid>
                         ))}
                     </Grid>
                 </Box>
 
                 {/* ── SECTION 2: TRIVIA CARDS ── */}
-                <Box sx={{ mb: 8 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: pt.sectionTitleColor, mb: 2 }}>
+                <Box sx={{ mb: 8 }} ref={triviaRef}>
+                    <Typography variant="h4" sx={{
+                        fontWeight: 900, color: pt.sectionTitleColor, mb: 2,
+                        opacity: triviaInView ? 1 : 0,
+                        transform: triviaInView ? 'translateY(0)' : 'translateY(32px)',
+                        transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1)',
+                    }}>
                         🧠 Did You Know?
                     </Typography>
-                    <Typography sx={{ color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem' }}>
+                    <Typography sx={{
+                        color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem',
+                        opacity: triviaInView ? 1 : 0,
+                        transform: triviaInView ? 'translateY(0)' : 'translateY(24px)',
+                        transition: 'opacity 0.7s ease 0.1s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s',
+                    }}>
                         Eco shares a new fact with you every few seconds!
                     </Typography>
 
-                    <Paper sx={{
-                        borderRadius: '28px', overflow: 'hidden',
-                        boxShadow: pt.cardShadow,
-                        background: pt.cardBg,
-                        backdropFilter: pt.cardBackdropFilter,
-                        border: pt.cardBorder,
+                    <Box sx={{
+                        opacity: triviaInView ? 1 : 0,
+                        transform: triviaInView ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.97)',
+                        transition: 'opacity 0.75s ease 0.18s, transform 0.75s cubic-bezier(0.22,1,0.36,1) 0.18s',
                     }}>
-                        <Box sx={{
-                            display: 'flex', flexDirection: { xs: 'column', md: 'row' },
-                            minHeight: 300,
+                        <Paper sx={{
+                            borderRadius: '28px', overflow: 'hidden',
+                            boxShadow: pt.cardShadow,
+                            background: pt.cardBg,
+                            backdropFilter: pt.cardBackdropFilter,
+                            border: pt.cardBorder,
                         }}>
-                            {/* Mascot side */}
                             <Box sx={{
-                                width: { xs: '100%', md: 280 }, bgcolor: currentTrivia.color + '25',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                justifyContent: 'center', p: 4, gap: 2,
-                                borderRight: { md: `4px solid ${currentTrivia.color}40` },
-                                transition: 'background 0.5s ease, border-color 0.5s ease',
+                                display: 'flex', flexDirection: { xs: 'column', md: 'row' },
+                                minHeight: 300,
                             }}>
-                                <Box
-                                    component="img" src="/mascot think.png" alt="Eco"
-                                    sx={{
-                                        width: 220, height: 220, objectFit: 'contain',
-                                        filter: `drop-shadow(0 8px 24px ${currentTrivia.color}40)`,
-                                        animation: 'mascotBob 3s ease-in-out infinite',
-                                        '@keyframes mascotBob': {
-                                            '0%,100%': { transform: 'translateY(0)' },
-                                            '50%': { transform: 'translateY(-8px)' },
-                                        },
-                                    }}
-                                />
-                                <Chip
-                                    label={currentTrivia.category}
-                                    sx={{ bgcolor: currentTrivia.color, color: 'white', fontWeight: 700, fontSize: '0.85rem' }}
-                                />
-                            </Box>
-
-                            {/* Trivia content */}
-                            <Box sx={{ flex: 1, p: { xs: 3, md: 5 }, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <Typography sx={{
-                                    fontSize: '3rem', mb: 2,
-                                    opacity: triviaAnimating ? 0 : 1,
-                                    transition: 'opacity 0.2s ease',
+                                {/* Mascot side */}
+                                <Box sx={{
+                                    width: { xs: '100%', md: 280 }, bgcolor: currentTrivia.color + '25',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                    justifyContent: 'center', p: 4, gap: 2,
+                                    borderRight: { md: `4px solid ${currentTrivia.color}40` },
+                                    transition: 'background 0.5s ease, border-color 0.5s ease',
                                 }}>
-                                    {currentTrivia.icon}
-                                </Typography>
-                                <Typography sx={{
-                                    fontSize: { xs: '1.15rem', md: '1.4rem' }, fontWeight: 700,
-                                    color: pt.sectionTitleColor, lineHeight: 1.7,
-                                    opacity: triviaAnimating ? 0 : 1, transition: 'opacity 0.2s ease',
-                                }}>
-                                    {currentTrivia.fact}
-                                </Typography>
+                                    <Box
+                                        component="img" src="/mascot think.png" alt="Eco"
+                                        sx={{
+                                            width: 220, height: 220, objectFit: 'contain',
+                                            filter: `drop-shadow(0 8px 24px ${currentTrivia.color}40)`,
+                                            animation: 'mascotBob 3s ease-in-out infinite',
+                                            '@keyframes mascotBob': {
+                                                '0%,100%': { transform: 'translateY(0)' },
+                                                '50%': { transform: 'translateY(-8px)' },
+                                            },
+                                        }}
+                                    />
+                                    <Chip
+                                        label={currentTrivia.category}
+                                        sx={{ bgcolor: currentTrivia.color, color: 'white', fontWeight: 700, fontSize: '0.85rem' }}
+                                    />
+                                </Box>
 
-                                {/* Navigation */}
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 4 }}>
-                                    <IconButton onClick={() => changeTrivia(-1)}
-                                        sx={{ bgcolor: pt.iconButtonBg, '&:hover': { bgcolor: pt.iconButtonHoverBg }, color: pt.iconButtonColor }}>
-                                        <PrevIcon />
-                                    </IconButton>
-                                    <Typography variant="body2" sx={{ color: pt.secondaryTextColor, fontWeight: 600 }}>
-                                        {triviaIdx + 1} / {triviaData.length}
+                                {/* Trivia content */}
+                                <Box sx={{ flex: 1, p: { xs: 3, md: 5 }, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                    <Typography sx={{
+                                        fontSize: '3rem', mb: 2,
+                                        opacity: triviaAnimating ? 0 : 1,
+                                        transition: 'opacity 0.2s ease',
+                                    }}>
+                                        {currentTrivia.icon}
                                     </Typography>
-                                    <IconButton onClick={() => changeTrivia(1)}
-                                        sx={{ bgcolor: pt.iconButtonBg, '&:hover': { bgcolor: pt.iconButtonHoverBg }, color: pt.iconButtonColor }}>
-                                        <NextIcon />
-                                    </IconButton>
-                                    <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
-                                        {triviaData.map((_, i) => (
-                                            <Box key={i} onClick={() => setTriviaIdx(i)} sx={{
-                                                width: i === triviaIdx ? 24 : 8, height: 8, borderRadius: '4px',
-                                                bgcolor: i === triviaIdx ? currentTrivia.color : pt.dotColor,
-                                                transition: 'all 0.3s ease', cursor: 'pointer',
-                                            }} />
-                                        ))}
+                                    <Typography sx={{
+                                        fontSize: { xs: '1.15rem', md: '1.4rem' }, fontWeight: 700,
+                                        color: pt.sectionTitleColor, lineHeight: 1.7,
+                                        opacity: triviaAnimating ? 0 : 1, transition: 'opacity 0.2s ease',
+                                    }}>
+                                        {currentTrivia.fact}
+                                    </Typography>
+
+                                    {/* Navigation */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 4 }}>
+                                        <IconButton onClick={() => changeTrivia(-1)}
+                                            sx={{ bgcolor: pt.iconButtonBg, '&:hover': { bgcolor: pt.iconButtonHoverBg }, color: pt.iconButtonColor }}>
+                                            <PrevIcon />
+                                        </IconButton>
+                                        <Typography variant="body2" sx={{ color: pt.secondaryTextColor, fontWeight: 600 }}>
+                                            {triviaIdx + 1} / {triviaData.length}
+                                        </Typography>
+                                        <IconButton onClick={() => changeTrivia(1)}
+                                            sx={{ bgcolor: pt.iconButtonBg, '&:hover': { bgcolor: pt.iconButtonHoverBg }, color: pt.iconButtonColor }}>
+                                            <NextIcon />
+                                        </IconButton>
+                                        <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
+                                            {triviaData.map((_, i) => (
+                                                <Box key={i} onClick={() => setTriviaIdx(i)} sx={{
+                                                    width: i === triviaIdx ? 24 : 8, height: 8, borderRadius: '4px',
+                                                    bgcolor: i === triviaIdx ? currentTrivia.color : pt.dotColor,
+                                                    transition: 'all 0.3s ease', cursor: 'pointer',
+                                                }} />
+                                            ))}
+                                        </Box>
                                     </Box>
                                 </Box>
                             </Box>
-                        </Box>
-                    </Paper>
+                        </Paper>
+                    </Box> {/* end reveal wrapper */}
                 </Box>
 
                 {/* ── SECTION 3: 5S+ EXPLAINER ── */}
                 <Box sx={{ mb: 8 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: pt.sectionTitleColor, mb: 2 }}>
+                    <Typography variant="h4" sx={{
+                        fontWeight: 900, color: pt.sectionTitleColor, mb: 2,
+                        opacity: pillarsInView ? 1 : 0,
+                        transform: pillarsInView ? 'translateY(0)' : 'translateY(32px)',
+                        transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1)',
+                    }}>
                         ⭐ Understanding the 5S+ Framework
                     </Typography>
-                    <Typography sx={{ color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem', maxWidth: 700 }}>
+                    <Typography sx={{
+                        color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem', maxWidth: 700,
+                        opacity: pillarsInView ? 1 : 0,
+                        transform: pillarsInView ? 'translateY(0)' : 'translateY(20px)',
+                        transition: 'opacity 0.7s ease 0.1s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s',
+                    }}>
                         The 5S+ program is CIT-U's systematic approach to workplace organization, cleanliness, and environmental responsibility.
                     </Typography>
 
-                    <Grid container spacing={3}>
+                    <Grid container spacing={3} ref={pillarsRef}>
                         {pillars.map((p, i) => {
                             const Icon = p.icon;
                             return (
-                                <Grid key={p.label} size={{ xs: 12, md: 6 }}>
-                                    <Card sx={{
-                                        borderRadius: '20px', height: '100%',
-                                        border: `2px solid ${p.color}25`,
-                                        boxShadow: `0 6px 24px ${p.color}15`,
-                                        background: pt.cardBg,
-                                        backdropFilter: pt.cardBackdropFilter,
-                                        transition: 'all 0.3s ease',
-                                        '&:hover': { transform: 'translateY(-6px)', boxShadow: `0 16px 40px ${p.color}30` },
-                                        animation: `cardIn 0.5s ease-out ${i * 0.08}s backwards`,
+                                <Grid key={p.label} item xs={12} md={6}>
+                                    <Box sx={{
+                                        opacity: pillarsInView ? 1 : 0,
+                                        transform: pillarsInView ? 'translateY(0)' : 'translateY(48px)',
+                                        transition: `opacity 0.65s ease ${0.08 * i}s, transform 0.65s cubic-bezier(0.22,1,0.36,1) ${0.08 * i}s`,
                                     }}>
-                                        <CardContent sx={{ p: 3 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                                <Box sx={{
-                                                    width: 52, height: 52, borderRadius: '16px',
-                                                    bgcolor: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    boxShadow: `0 6px 16px ${p.color}25`,
-                                                }}>
-                                                    <Icon sx={{ color: p.color, fontSize: 28 }} />
+                                        <Card sx={{
+                                            borderRadius: '20px', height: '100%',
+                                            border: `2px solid ${p.color}25`,
+                                            boxShadow: `0 6px 24px ${p.color}15`,
+                                            background: pt.cardBg,
+                                            backdropFilter: pt.cardBackdropFilter,
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': { transform: 'translateY(-6px)', boxShadow: `0 16px 40px ${p.color}30` },
+                                            animation: `cardIn 0.5s ease-out ${i * 0.08}s backwards`,
+                                        }}>
+                                            <CardContent sx={{ p: 3 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                                    <Box sx={{
+                                                        width: 52, height: 52, borderRadius: '16px',
+                                                        bgcolor: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        boxShadow: `0 6px 16px ${p.color}25`,
+                                                    }}>
+                                                        <Icon sx={{ color: p.color, fontSize: 28 }} />
+                                                    </Box>
+                                                    <Box>
+                                                        <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: p.color, letterSpacing: '1px' }}>
+                                                            {p.label}
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ color: '#90a4ae', fontStyle: 'italic' }}>
+                                                            {p.tagline}
+                                                        </Typography>
+                                                    </Box>
                                                 </Box>
-                                                <Box>
-                                                    <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: p.color, letterSpacing: '1px' }}>
-                                                        {p.label}
-                                                    </Typography>
-                                                    <Typography variant="caption" sx={{ color: '#90a4ae', fontStyle: 'italic' }}>
-                                                        {p.tagline}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                            <Typography sx={{ color: pt.bodyTextColor, lineHeight: 1.7, mb: 2, fontSize: '0.95rem' }}>
-                                                {p.description}
-                                            </Typography>
-                                            <Box sx={{
-                                                p: 2, borderRadius: '12px',
-                                                bgcolor: `${p.color}08`, border: `1px solid ${p.color}20`,
-                                            }}>
-                                                <Typography variant="body2" sx={{ color: p.color, fontWeight: 600, lineHeight: 1.6 }}>
-                                                    {p.campus}
+                                                <Typography sx={{ color: pt.bodyTextColor, lineHeight: 1.7, mb: 2, fontSize: '0.95rem' }}>
+                                                    {p.description}
                                                 </Typography>
-                                            </Box>
-                                        </CardContent>
-                                    </Card>
+                                                <Box sx={{
+                                                    p: 2, borderRadius: '12px',
+                                                    bgcolor: `${p.color}08`, border: `1px solid ${p.color}20`,
+                                                }}>
+                                                    <Typography variant="body2" sx={{ color: p.color, fontWeight: 600, lineHeight: 1.6 }}>
+                                                        {p.campus}
+                                                    </Typography>
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    </Box>
                                 </Grid>
                             );
                         })}
@@ -386,35 +455,51 @@ const Awareness = () => {
 
                 {/* ── SECTION 4: QUICK TIPS ── */}
                 <Box sx={{ mb: 4 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: pt.sectionTitleColor, mb: 2 }}>
+                    <Typography variant="h4" sx={{
+                        fontWeight: 900, color: pt.sectionTitleColor, mb: 2,
+                        opacity: tipsInView ? 1 : 0,
+                        transform: tipsInView ? 'translateY(0)' : 'translateY(32px)',
+                        transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1)',
+                    }}>
                         💡 Waste Reduction Tips
                     </Typography>
-                    <Typography sx={{ color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem' }}>
+                    <Typography sx={{
+                        color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem',
+                        opacity: tipsInView ? 1 : 0,
+                        transform: tipsInView ? 'translateY(0)' : 'translateY(20px)',
+                        transition: 'opacity 0.7s ease 0.08s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.08s',
+                    }}>
                         Small actions make a big difference. Try implementing these in your daily routine!
                     </Typography>
 
-                    <Grid container spacing={2}>
+                    <Grid container spacing={2} ref={tipsRef}>
                         {tips.map((t, i) => (
                             <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-                                <Paper sx={{
-                                    p: 2.5, borderRadius: '16px',
-                                    boxShadow: 'none',
-                                    background: darkMode ? 'rgba(255,255,255,0.05)' : 'white',
-                                    backdropFilter: darkMode ? 'blur(12px)' : 'none',
-                                    border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(46,125,50,0.1)',
-                                    display: 'flex', alignItems: 'flex-start', gap: 2,
-                                    transition: 'all 0.25s ease',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        background: darkMode ? 'rgba(232,184,75,0.08)' : '#fce4ec',
-                                        border: darkMode ? '1px solid rgba(105,240,174,0.2)' : '1px solid rgba(46,125,50,0.2)',
-                                    },
+                                <Box sx={{
+                                    opacity: tipsInView ? 1 : 0,
+                                    transform: tipsInView ? 'translateY(0)' : 'translateY(40px)',
+                                    transition: `opacity 0.6s ease ${0.06 * i}s, transform 0.6s cubic-bezier(0.22,1,0.36,1) ${0.06 * i}s`,
                                 }}>
-                                    <Typography sx={{ fontSize: '1.8rem', flexShrink: 0 }}>{t.emoji}</Typography>
-                                    <Typography variant="body2" sx={{ color: pt.bodyTextColor, fontWeight: 500, lineHeight: 1.6 }}>
-                                        {t.tip}
-                                    </Typography>
-                                </Paper>
+                                    <Paper sx={{
+                                        p: 2.5, borderRadius: '16px',
+                                        boxShadow: 'none',
+                                        background: darkMode ? 'rgba(255,255,255,0.05)' : 'white',
+                                        backdropFilter: darkMode ? 'blur(12px)' : 'none',
+                                        border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(46,125,50,0.1)',
+                                        display: 'flex', alignItems: 'flex-start', gap: 2,
+                                        transition: 'all 0.25s ease',
+                                        '&:hover': {
+                                            transform: 'translateY(-4px)',
+                                            background: darkMode ? 'rgba(232,184,75,0.08)' : '#fce4ec',
+                                            border: darkMode ? '1px solid rgba(105,240,174,0.2)' : '1px solid rgba(46,125,50,0.2)',
+                                        },
+                                    }}>
+                                        <Typography sx={{ fontSize: '1.8rem', flexShrink: 0 }}>{t.emoji}</Typography>
+                                        <Typography variant="body2" sx={{ color: pt.bodyTextColor, fontWeight: 500, lineHeight: 1.6 }}>
+                                            {t.tip}
+                                        </Typography>
+                                    </Paper>
+                                </Box>
                             </Grid>
                         ))}
                     </Grid>

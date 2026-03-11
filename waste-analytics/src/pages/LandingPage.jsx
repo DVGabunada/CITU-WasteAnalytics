@@ -26,7 +26,7 @@ const useInView = (options = {}) => {
         const el = ref.current;
         if (!el) return;
         const obs = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting) { setInView(true); obs.disconnect(); }
+            setInView(entry.isIntersecting);
         }, { threshold: 0.12, ...options });
         obs.observe(el);
         return () => obs.disconnect();
@@ -104,11 +104,11 @@ const wasteCategories = [
 ];
 
 // ─── Animated Wave Background component ──────────────────────────────────────
-const WaveBg = ({ opacity = 0.18 }) => (
+const WaveBg = ({ opacity = 0.55 }) => (
     <Box sx={{
         position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0,
     }}>
-        {/* Wave 1 — slow, large */}
+        {/* Wave 1 — slow, large, deep maroon */}
         <Box component="svg" viewBox="0 0 1440 320" preserveAspectRatio="none"
             sx={{
                 position: 'absolute', bottom: 0, left: 0, width: '200%', height: '45%',
@@ -120,14 +120,14 @@ const WaveBg = ({ opacity = 0.18 }) => (
                 },
             }}>
             <path d="M0,160 C180,260 360,60 540,160 C720,260 900,60 1080,160 C1260,260 1440,60 1440,160 L1440,320 L0,320 Z"
-                fill="rgba(123,17,19,0.35)" />
+                fill="rgba(160,21,24,0.65)" />
         </Box>
 
-        {/* Wave 2 — medium speed */}
+        {/* Wave 2 — medium speed, gold */}
         <Box component="svg" viewBox="0 0 1440 320" preserveAspectRatio="none"
             sx={{
                 position: 'absolute', bottom: 0, left: 0, width: '200%', height: '35%',
-                opacity: opacity * 0.8,
+                opacity: opacity * 0.85,
                 animation: 'wave2 12s linear infinite reverse',
                 '@keyframes wave2': {
                     '0%': { transform: 'translateX(0)' },
@@ -135,14 +135,14 @@ const WaveBg = ({ opacity = 0.18 }) => (
                 },
             }}>
             <path d="M0,192 C120,130 240,250 360,192 C480,130 600,250 720,192 C840,130 960,250 1080,192 C1200,130 1320,250 1440,192 L1440,320 L0,320 Z"
-                fill="rgba(232,184,75,0.15)" />
+                fill="rgba(232,184,75,0.45)" />
         </Box>
 
-        {/* Wave 3 — fastest, smallest */}
+        {/* Wave 3 — fastest, dark maroon front */}
         <Box component="svg" viewBox="0 0 1440 320" preserveAspectRatio="none"
             sx={{
                 position: 'absolute', bottom: 0, left: 0, width: '200%', height: '22%',
-                opacity: opacity * 0.6,
+                opacity: opacity * 0.75,
                 animation: 'wave3 8s linear infinite',
                 '@keyframes wave3': {
                     '0%': { transform: 'translateX(-50%)' },
@@ -150,7 +150,7 @@ const WaveBg = ({ opacity = 0.18 }) => (
                 },
             }}>
             <path d="M0,224 C90,180 180,270 270,224 C360,178 450,270 540,224 C630,178 720,270 810,224 C900,178 990,270 1080,224 C1170,178 1260,270 1350,224 L1440,224 L1440,320 L0,320 Z"
-                fill="rgba(90,13,15,0.4)" />
+                fill="rgba(90,13,15,0.75)" />
         </Box>
     </Box>
 );
@@ -228,7 +228,7 @@ const LandingPage = () => {
                 ))}
 
                 {/* Animated waves at the bottom of hero */}
-                <WaveBg opacity={0.22} />
+                <WaveBg opacity={0.6} />
 
                 {/* CIT-U pill badge */}
                 <Box sx={{
@@ -418,7 +418,7 @@ const LandingPage = () => {
                 position: 'relative', overflow: 'hidden',
             }}>
                 {/* Moving background waves */}
-                <WaveBg opacity={0.15} />
+                <WaveBg opacity={0.5} />
 
                 {/* Floating particles */}
                 {[...Array(6)].map((_, i) => (
@@ -662,7 +662,7 @@ const LandingPage = () => {
                 borderTop: '1px solid rgba(255,255,255,0.04)',
                 position: 'relative', overflow: 'hidden',
             }}>
-                <WaveBg opacity={0.1} />
+                <WaveBg opacity={0.45} />
                 <Box sx={{ maxWidth: 1280, mx: 'auto', position: 'relative', zIndex: 1 }}>
                     <RevealSection>
                         <Typography sx={{
