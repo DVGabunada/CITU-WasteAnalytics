@@ -26,10 +26,10 @@ export const usePageTheme = () => {
             : 'linear-gradient(135deg, #5a0d0f 0%, #7b1113 50%, #a01518 100%)',
 
         // ── Text ──────────────────────────────────────────────────────────
-        subtitleColor: darkMode ? 'rgba(255,255,255,0.55)' : '#7b1113',
+        subtitleColor: darkMode ? 'rgba(255,255,255,0.75)' : '#7b1113',
         sectionTitleColor: darkMode ? '#fce4ec' : '#3e0a0b',
-        bodyTextColor: darkMode ? 'rgba(255,255,255,0.7)' : '#37474f',
-        secondaryTextColor: darkMode ? 'rgba(255,255,255,0.5)' : '#616161',
+        bodyTextColor: darkMode ? 'rgba(255,255,255,0.85)' : '#37474f',
+        secondaryTextColor: darkMode ? 'rgba(255,255,255,0.65)' : '#616161',
         chartTitleColor: darkMode ? '#fce4ec' : '#3e0a0b',
 
         // ── Date Chip ─────────────────────────────────────────────────────
@@ -134,20 +134,24 @@ export const usePageTheme = () => {
 
         // ── Table ─────────────────────────────────────────────────────────
         tableHeadSx: darkMode
-            ? { bgcolor: 'rgba(255,255,255,0.04)', color: '#e8b84b', borderBottom: '1px solid rgba(255,255,255,0.1)' }
+            ? { bgcolor: 'rgba(255,255,255,0.07)', color: '#ffffff', borderBottom: '1px solid rgba(255,255,255,0.15)',
+                '& .MuiTableSortLabel-root': { color: '#ffffff' },
+                '& .MuiTableSortLabel-root.Mui-active': { color: '#e8b84b' },
+                '& .MuiTableSortLabel-icon': { color: '#e8b84b !important' },
+              }
             : { bgcolor: '#fce4ec', color: '#7b1113', borderBottom: '2px solid #f8bbd0' },
 
         tableRowSx: darkMode
             ? {
-                '&:nth-of-type(even)': { bgcolor: 'rgba(255,255,255,0.03)' },
-                '&:hover': { bgcolor: 'rgba(232,184,75,0.06) !important' },
+                '&:nth-of-type(even)': { bgcolor: 'rgba(255,255,255,0.05)' },
+                '&:hover': { bgcolor: 'rgba(232,184,75,0.09) !important' },
                 transition: 'background 0.15s',
             }
             : { '&:nth-of-type(even)': { bgcolor: '#fff8f8' }, transition: 'background 0.15s' },
 
-        tableCellColor: darkMode ? 'rgba(255,255,255,0.75)' : 'inherit',
+        tableCellColor: darkMode ? 'rgba(255,255,255,0.92)' : 'inherit',
         tableWeightColor: darkMode ? '#e8b84b' : '#7b1113',
-        tableNoteColor: darkMode ? 'rgba(255,255,255,0.5)' : '#616161',
+        tableNoteColor: darkMode ? 'rgba(255,255,255,0.7)' : '#616161',
 
         paginationSx: darkMode
             ? {

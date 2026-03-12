@@ -24,15 +24,26 @@ import { usePageTheme } from '../hooks/usePageTheme';
 import { getTransactions } from '../data/dataStore';
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-const categoryColor = (cat) => {
+const categoryColorLight = (cat) => {
     const map = {
-        'Biodegradable': '#43a047',
-        'Recyclable': '#1565c0',
-        'Residual': '#6a1b9a',
-        'Hazardous': '#b71c1c',
-        'Special': '#e65100',
+        'Biodegradable': '#2e7d32',
+        'Recyclable':    '#1565c0',
+        'Residual':      '#6a1b9a',
+        'Hazardous':     '#b71c1c',
+        'Special':       '#e65100',
     };
     return map[cat] ?? '#37474f';
+};
+
+const categoryColorDark = (cat) => {
+    const map = {
+        'Biodegradable': '#69f0ae',
+        'Recyclable':    '#82b1ff',
+        'Residual':      '#ea80fc',
+        'Hazardous':     '#ff8a80',
+        'Special':       '#ffab40',
+    };
+    return map[cat] ?? '#b0bec5';
 };
 
 function descendingComparator(a, b, orderBy) {
@@ -93,6 +104,8 @@ const DataLogs = () => {
     const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     const pt = usePageTheme();
+    const { darkMode } = pt;
+    const categoryColor = darkMode ? categoryColorDark : categoryColorLight;
 
     return (
         <Box sx={{
@@ -233,11 +246,16 @@ const DataLogs = () => {
                                                     label={row.category}
                                                     size="small"
                                                     sx={{
-                                                        bgcolor: `${categoryColor(row.category)}18`,
+                                                        bgcolor: darkMode
+                                                            ? `${categoryColor(row.category)}22`
+                                                            : `${categoryColor(row.category)}18`,
                                                         color: categoryColor(row.category),
-                                                        fontWeight: 600,
+                                                        fontWeight: 700,
                                                         fontSize: '0.82rem',
                                                         borderRadius: '8px',
+                                                        border: darkMode
+                                                            ? `1px solid ${categoryColor(row.category)}55`
+                                                            : 'none',
                                                     }}
                                                 />
                                             </TableCell>
