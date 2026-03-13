@@ -106,26 +106,67 @@ const pillars = [
 
 // ─── Waste Reduction Tips ─────────────────────────────────────────────────────
 
-const tips = [
-    { emoji: '📄', tip: 'Print double-sided to cut paper waste by up to 50%.' },
-    { emoji: '🍱', tip: 'Bring a reusable lunch box to avoid single-use plastic packaging.' },
-    { emoji: '💧', tip: 'Use a refillable water bottle instead of buying bottled water daily.' },
-    { emoji: '🖨️', tip: 'Review documents digitally before printing — avoid unnecessary copies.' },
-    { emoji: '🔋', tip: 'Dispose of batteries and e-waste in the designated RED BIN only.' },
-    { emoji: '🧴', tip: 'Rinse plastic containers before recycling — contamination ruins whole batches.' },
-    { emoji: '📦', tip: 'Reuse cardboard boxes for storage before sending to the blue bin.' },
-    { emoji: '🌱', tip: 'Start or join a composting initiative for canteen food waste.' },
-    { emoji: '✏️', tip: 'Use pens and pencils until they run out — avoid discarding prematurely.' },
-    { emoji: '💡', tip: 'Report broken or leaking chemicals to the safety office immediately.' },
-    { emoji: '🛍️', tip: 'Bring reusable eco bags when shopping — avoid accepting single-use plastic bags.' },
-    { emoji: '🔌', tip: 'Unplug chargers and devices when not in use to cut energy waste and extend equipment life.' },
+const flashcards = [
+    {
+        question: 'How much paper waste can you cut by printing double-sided?',
+        answer: 'Up to 50%! Always set your printer default to double-sided (duplex) printing.',
+    },
+    {
+        question: 'What happens to recycled plastics that are contaminated with food?',
+        answer: 'The entire batch gets rejected and sent to landfill. Always rinse containers before placing them in the blue bin.',
+    },
+    {
+        question: 'Which bin should old batteries and e-waste go into at CIT-U?',
+        answer: 'The RED (Hazardous) bin only. Never mix batteries with regular trash — they contain toxic chemicals.',
+    },
+    {
+        question: 'True or False: A single disposable water bottle takes about 450 years to decompose.',
+        answer: 'TRUE. Switching to a refillable bottle eliminates hundreds of bottles from landfills every year.',
+    },
+    {
+        question: 'What is the easiest way to reduce office paper waste before you even print?',
+        answer: 'Review documents digitally first. Use Print Preview and only print what is truly necessary.',
+    },
+    {
+        question: 'What can you do with a used cardboard box before recycling it?',
+        answer: 'Reuse it for storage, shipping, or organising! Give it a second life before sending it to the blue bin.',
+    },
+    {
+        question: 'Where does canteen food waste go if there is a composting programme?',
+        answer: 'Into a composting bin where it becomes nutrient-rich soil. Join or start a composting initiative on campus!',
+    },
+    {
+        question: 'Why should you use a pen or pencil until it runs completely out?',
+        answer: 'Premature disposal adds unnecessary plastic waste. Maximising use reduces consumption and saves money.',
+    },
+    {
+        question: 'What is the first thing you should do if you find leaking or broken chemicals at CIT-U?',
+        answer: 'Report it to the Safety Office immediately. Improper disposal of chemicals is a serious hazard.',
+    },
+    {
+        question: 'How many single-use plastic bags can one reusable eco bag replace per year?',
+        answer: 'Hundreds! The average person uses over 500 plastic bags per year. One reusable bag replaces them all.',
+    },
+    {
+        question: 'Does leaving a phone charger plugged in when not in use waste electricity?',
+        answer: 'Yes! Phone chargers draw standby power even with no device connected. Unplug them to save energy.',
+    },
+    {
+        question: 'What is the 5S+ framework\u2019s role in waste reduction at CIT-U?',
+        answer: 'It creates systematic habits — Sort, Set in Order, Shine, Standardize, Sustain + Safety & Eco — turning waste reduction into daily routine.',
+    },
 ];
+
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const Awareness = () => {
     const [triviaIdx, setTriviaIdx] = useState(0);
     const [triviaAnimating, setTriviaAnimating] = useState(false);
+    const [deckIdx, setDeckIdx] = useState(0);
+    const [flipped, setFlipped] = useState(false);
+    const [exiting, setExiting] = useState(false);
+    const [exitDir, setExitDir] = useState('next'); // 'next' | 'prev'
     const pt = usePageTheme();
     const { darkMode } = pt;
 
@@ -479,8 +520,8 @@ const Awareness = () => {
                         </Grid>
                     </Box>
 
-                    {/* ── SECTION 4: QUICK TIPS ── */}
-                    <Box sx={{ mb: { xs: 10, md: 14 } }}>
+                    {/* ── SECTION 4: FLASHCARD TIPS ── */}
+                    <Box sx={{ mb: { xs: 10, md: 14 }, overflowX: 'hidden' }}>
                         <Typography variant="h4" sx={{
                             fontWeight: 900, color: pt.sectionTitleColor, mb: 2,
                             opacity: tipsInView ? 1 : 0,
@@ -490,46 +531,296 @@ const Awareness = () => {
                             Waste Reduction Tips
                         </Typography>
                         <Typography sx={{
-                            color: pt.secondaryTextColor, mb: 4, fontSize: '1.05rem',
+                            color: pt.secondaryTextColor, mb: 6, fontSize: '1.05rem',
                             opacity: tipsInView ? 1 : 0,
                             transform: tipsInView ? 'translateY(0)' : 'translateY(20px)',
                             transition: 'opacity 0.7s ease 0.08s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.08s',
                         }}>
-                            Small actions make a big difference. Try implementing these in your daily routine!
+                            Click a card to reveal the answer. Use the arrows to browse all {flashcards.length} tips.
                         </Typography>
 
-                        <Grid container spacing={2} ref={tipsRef}>
-                            {tips.map((t, i) => (
-                                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-                                    <Box sx={{
-                                        opacity: tipsInView ? 1 : 0,
-                                        transform: tipsInView ? 'translateY(0)' : 'translateY(40px)',
-                                        transition: `opacity 0.6s ease ${0.06 * i}s, transform 0.6s cubic-bezier(0.22,1,0.36,1) ${0.06 * i}s`,
-                                        height: '100%',
-                                    }}>
-                                        <Paper sx={{
-                                            p: 3.5, borderRadius: '20px', height: '100%',
-                                            boxShadow: darkMode ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.06)',
-                                            background: darkMode ? 'rgba(255,255,255,0.05)' : 'white',
-                                            backdropFilter: darkMode ? 'blur(12px)' : 'none',
-                                            border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(123,17,19,0.08)',
-                                            display: 'flex', flexDirection: 'column', gap: 1.5,
-                                            transition: 'all 0.25s ease',
-                                            '&:hover': {
-                                                transform: 'translateY(-5px)',
-                                                boxShadow: darkMode ? '0 12px 32px rgba(0,0,0,0.4)' : '0 12px 32px rgba(123,17,19,0.12)',
-                                                border: darkMode ? '1px solid rgba(232,184,75,0.2)' : '1px solid rgba(123,17,19,0.18)',
-                                            },
+                        {/* Card deck logic */}
+                        {(() => {
+                            const n = flashcards.length;
+                            const fi = deckIdx % n;               // front
+                            const mi = (deckIdx + 1) % n;         // mid
+                            const bi = (deckIdx + 2) % n;         // back
+                            const ei = (deckIdx + 3) % n;         // entering (new back during exit)
+
+                            const goCard = (dir) => {
+                                if (exiting) return;
+                                setFlipped(false);
+                                setExitDir(dir);
+                                setExiting(true);
+                                setTimeout(() => {
+                                    setDeckIdx(prev => dir === 'next'
+                                        ? (prev + 1) % n
+                                        : (prev - 1 + n) % n
+                                    );
+                                    setExiting(false);
+                                }, 480);
+                            };
+
+                            // All cards share inset:0 — position/stack effect is purely transform
+                            // This allows smooth GPU-animated CSS transitions
+                            const CARD_SX = {
+                                front: {
+                                    zIndex: 4,
+                                    transform: 'translateY(0px) scaleX(1) scale(1) rotate(0deg)',
+                                    opacity: 1,
+                                },
+                                mid: {
+                                    zIndex: 3,
+                                    transform: 'translateY(18px) scaleX(0.93) scale(0.97) rotate(-2deg)',
+                                    opacity: 0.88,
+                                },
+                                back: {
+                                    zIndex: 2,
+                                    transform: 'translateY(34px) scaleX(0.86) scale(0.94) rotate(1.5deg)',
+                                    opacity: 0.72,
+                                },
+                                exitNext: {
+                                    // Sink to back of deck — scale down, drop behind, fade slightly
+                                    zIndex: 0,
+                                    transform: 'translateY(52px) scaleX(0.78) scale(0.82) rotate(3deg)',
+                                    opacity: 0.25,
+                                },
+                                exitPrev: {
+                                    // Same sink-to-back for prev direction
+                                    zIndex: 0,
+                                    transform: 'translateY(52px) scaleX(0.78) scale(0.82) rotate(-3deg)',
+                                    opacity: 0.25,
+                                },
+                                enter: {
+                                    zIndex: 1,
+                                    transform: 'translateY(34px) scaleX(0.86) scale(0.94) rotate(1.5deg)',
+                                    opacity: 0.55,
+                                },
+                            };
+
+                            const sharedCardSx = {
+                                position: 'absolute',
+                                // Explicit height instead of inset:0 — so cards are 340px tall inside
+                                // the 400px container, leaving room for ghost cards to peek below
+                                // (translateY 34px → bottom at 374px) without overflowing the page
+                                top: 0, left: 0, right: 0, height: 340,
+                                borderRadius: '28px',
+                                transition: 'transform 0.48s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
+                            };
+
+                            const ghostBg = darkMode
+                                ? 'linear-gradient(145deg, #3a1212 0%, #260d0d 100%)'
+                                : 'linear-gradient(145deg, #ffffff 0%, #fff8f8 100%)';
+                            const ghostBorder = darkMode
+                                ? '1px solid rgba(232,184,75,0.15)'
+                                : '1px solid rgba(123,17,19,0.1)';
+
+                            // Which CARD_SX slot for each logical card during exit
+                            const frontSlot = exiting ? (exitDir === 'next' ? 'exitNext' : 'exitPrev') : 'front';
+                            const midSlot   = exiting ? 'front' : 'mid';
+                            const backSlot  = exiting ? 'mid'   : 'back';
+
+                            return (
+                                <Box ref={tipsRef} sx={{
+                                    opacity: tipsInView ? 1 : 0,
+                                    transform: tipsInView ? 'translateY(0)' : 'translateY(48px)',
+                                    transition: 'opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.15s',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                }}>
+                                    {/* Stack area — overflow:hidden clips ghost cards at container boundary
+                                         so the page height is NOT inflated by translateY overflow */}
+                                    <Box sx={{ position: 'relative', width: '100%', maxWidth: 680, mx: 'auto', height: 400, overflow: 'hidden' }}>
+
+                                        {/* ENTERING card — fades in at back during exit */}
+                                        {exiting && (
+                                            <Box sx={{
+                                                ...sharedCardSx,
+                                                ...CARD_SX.enter,
+                                                background: ghostBg,
+                                                border: ghostBorder,
+                                                boxShadow: darkMode ? '0 6px 20px rgba(0,0,0,0.35)' : '0 6px 20px rgba(123,17,19,0.06)',
+                                            }} />
+                                        )}
+
+                                        {/* BACK card */}
+                                        <Box sx={{
+                                            ...sharedCardSx,
+                                            ...CARD_SX[backSlot],
+                                            background: ghostBg,
+                                            border: ghostBorder,
+                                            boxShadow: darkMode ? '0 10px 32px rgba(0,0,0,0.4)' : '0 10px 32px rgba(123,17,19,0.07)',
+                                        }} />
+
+                                        {/* MID card — shows faint question text */}
+                                        <Box sx={{
+                                            ...sharedCardSx,
+                                            ...CARD_SX[midSlot],
+                                            background: ghostBg,
+                                            border: ghostBorder,
+                                            boxShadow: darkMode ? '0 14px 40px rgba(0,0,0,0.4)' : '0 14px 40px rgba(123,17,19,0.09)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            px: 5, textAlign: 'center',
                                         }}>
-                                            <Typography sx={{ fontSize: '2.2rem' }}>{t.emoji}</Typography>
-                                            <Typography sx={{ color: pt.bodyTextColor, fontWeight: 500, lineHeight: 1.7, fontSize: '1rem' }}>
-                                                {t.tip}
+                                            <Typography sx={{
+                                                fontSize: '0.88rem', fontWeight: 600, lineHeight: 1.5,
+                                                color: darkMode ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)',
+                                            }}>
+                                                {flashcards[mi].question}
                                             </Typography>
-                                        </Paper>
+                                        </Box>
+
+                                        {/* FRONT card — interactive flip card */}
+                                        <Box
+                                            onClick={() => !exiting && setFlipped(f => !f)}
+                                            sx={{
+                                                ...sharedCardSx,
+                                                ...CARD_SX[frontSlot],
+                                                cursor: exiting ? 'default' : 'pointer',
+                                                // perspective wrapper
+                                                perspective: '1200px',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                boxShadow: 'none',
+                                                transition: 'transform 0.48s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
+                                            }}
+                                        >
+                                            {/* Inner flip wrapper */}
+                                            <Box sx={{
+                                                width: '100%', height: '100%',
+                                                position: 'relative',
+                                                transformStyle: 'preserve-3d',
+                                                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                                                transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
+                                                borderRadius: '28px',
+                                            }}>
+                                                {/* FRONT FACE — Question */}
+                                                <Box sx={{
+                                                    position: 'absolute', inset: 0,
+                                                    backfaceVisibility: 'hidden',
+                                                    WebkitBackfaceVisibility: 'hidden',
+                                                    borderRadius: '28px',
+                                                    background: darkMode
+                                                        ? 'linear-gradient(145deg, #3d1515 0%, #2a0e0e 100%)'
+                                                        : 'linear-gradient(145deg, #ffffff 0%, #fff4f4 100%)',
+                                                    border: darkMode
+                                                        ? '1px solid rgba(232,184,75,0.25)'
+                                                        : '1px solid rgba(123,17,19,0.12)',
+                                                    boxShadow: darkMode
+                                                        ? '0 20px 60px rgba(0,0,0,0.5)'
+                                                        : '0 20px 60px rgba(123,17,19,0.14)',
+                                                    display: 'flex', flexDirection: 'column',
+                                                    alignItems: 'center', justifyContent: 'center',
+                                                    p: { xs: 4, md: 6 }, gap: 2.5, textAlign: 'center',
+                                                }}>
+                                                    <Box sx={{
+                                                        px: 2.5, py: 0.7, borderRadius: '50px',
+                                                        background: darkMode ? 'rgba(232,184,75,0.15)' : 'rgba(123,17,19,0.07)',
+                                                        border: darkMode ? '1px solid rgba(232,184,75,0.3)' : '1px solid rgba(123,17,19,0.15)',
+                                                    }}>
+                                                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: darkMode ? '#e8b84b' : '#7b1113' }}>
+                                                            Trivia  •  {fi + 1} / {n}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography sx={{ fontSize: { xs: '1.1rem', md: '1.3rem' }, fontWeight: 700, color: darkMode ? 'rgba(255,255,255,0.92)' : '#2d1010', lineHeight: 1.55 }}>
+                                                        {flashcards[fi].question}
+                                                    </Typography>
+                                                    <Typography sx={{ fontSize: '0.8rem', color: darkMode ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.33)', fontStyle: 'italic' }}>
+                                                        Tap to reveal answer
+                                                    </Typography>
+                                                </Box>
+
+                                                {/* BACK FACE — Answer */}
+                                                <Box sx={{
+                                                    position: 'absolute', inset: 0,
+                                                    backfaceVisibility: 'hidden',
+                                                    WebkitBackfaceVisibility: 'hidden',
+                                                    transform: 'rotateY(180deg)',
+                                                    borderRadius: '28px',
+                                                    background: darkMode
+                                                        ? 'linear-gradient(145deg, #1a3a1a 0%, #112811 100%)'
+                                                        : 'linear-gradient(145deg, #f0fbf0 0%, #e8f5e9 100%)',
+                                                    border: darkMode ? '1px solid rgba(105,240,174,0.2)' : '1px solid rgba(46,125,50,0.18)',
+                                                    boxShadow: darkMode ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(46,125,50,0.14)',
+                                                    display: 'flex', flexDirection: 'column',
+                                                    alignItems: 'center', justifyContent: 'center',
+                                                    p: { xs: 4, md: 6 }, gap: 2.5, textAlign: 'center',
+                                                }}>
+                                                    <Box sx={{
+                                                        px: 2.5, py: 0.7, borderRadius: '50px',
+                                                        background: darkMode ? 'rgba(105,240,174,0.12)' : 'rgba(46,125,50,0.08)',
+                                                        border: darkMode ? '1px solid rgba(105,240,174,0.25)' : '1px solid rgba(46,125,50,0.2)',
+                                                    }}>
+                                                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: darkMode ? '#69f0ae' : '#2e7d32' }}>
+                                                            Answer
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography sx={{ fontSize: { xs: '1.05rem', md: '1.2rem' }, fontWeight: 600, color: darkMode ? 'rgba(255,255,255,0.9)' : '#1b5e20', lineHeight: 1.65 }}>
+                                                        {flashcards[fi].answer}
+                                                    </Typography>
+                                                    <Typography sx={{ fontSize: '0.8rem', color: darkMode ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.33)', fontStyle: 'italic' }}>
+                                                        Tap to flip back
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Box>
                                     </Box>
-                                </Grid>
-                            ))}
-                        </Grid>
+
+                                    {/* Navigation */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                        <Box
+                                            onClick={() => goCard('prev')}
+                                            sx={{
+                                                width: 48, height: 48, borderRadius: '50%',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                cursor: exiting ? 'default' : 'pointer',
+                                                background: darkMode ? 'rgba(255,255,255,0.07)' : 'white',
+                                                border: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(123,17,19,0.15)',
+                                                boxShadow: darkMode ? 'none' : '0 4px 12px rgba(123,17,19,0.1)',
+                                                opacity: exiting ? 0.4 : 1,
+                                                transition: 'all 0.2s ease',
+                                                '&:hover': { background: darkMode ? 'rgba(232,184,75,0.12)' : 'rgba(123,17,19,0.06)', boxShadow: exiting ? 'none' : (darkMode ? '0 0 0 3px rgba(232,184,75,0.35)' : '0 0 0 3px rgba(123,17,19,0.18)') },
+                                            }}
+                                        >
+                                            <Typography sx={{ fontSize: '1.4rem', color: darkMode ? '#e8b84b' : '#7b1113', lineHeight: 1 }}>‹</Typography>
+                                        </Box>
+
+                                        {/* Dot indicators */}
+                                        <Box sx={{ display: 'flex', gap: 0.8 }}>
+                                            {flashcards.map((_, idx) => (
+                                                <Box
+                                                    key={idx}
+                                                    onClick={() => { if (!exiting) { setFlipped(false); setDeckIdx(idx); } }}
+                                                    sx={{
+                                                        width: idx === fi ? 20 : 8, height: 8, borderRadius: '4px',
+                                                        cursor: 'pointer', transition: 'all 0.3s ease',
+                                                        background: idx === fi
+                                                            ? (darkMode ? '#e8b84b' : '#7b1113')
+                                                            : (darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(123,17,19,0.15)'),
+                                                    }}
+                                                />
+                                            ))}
+                                        </Box>
+
+                                        <Box
+                                            onClick={() => goCard('next')}
+                                            sx={{
+                                                width: 48, height: 48, borderRadius: '50%',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                cursor: exiting ? 'default' : 'pointer',
+                                                background: darkMode ? 'rgba(255,255,255,0.07)' : 'white',
+                                                border: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(123,17,19,0.15)',
+                                                boxShadow: darkMode ? 'none' : '0 4px 12px rgba(123,17,19,0.1)',
+                                                opacity: exiting ? 0.4 : 1,
+                                                transition: 'all 0.2s ease',
+                                                '&:hover': { background: darkMode ? 'rgba(232,184,75,0.12)' : 'rgba(123,17,19,0.06)', boxShadow: exiting ? 'none' : (darkMode ? '0 0 0 3px rgba(232,184,75,0.35)' : '0 0 0 3px rgba(123,17,19,0.18)') },
+                                            }}
+                                        >
+                                            <Typography sx={{ fontSize: '1.4rem', color: darkMode ? '#e8b84b' : '#7b1113', lineHeight: 1 }}>›</Typography>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            );
+                        })()}
                     </Box>
                 </Box>
             </Box>
