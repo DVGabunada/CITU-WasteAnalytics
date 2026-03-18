@@ -32,6 +32,7 @@ import {
     DarkMode as DarkModeIcon,
     LightMode as LightModeIcon,
     Logout as LogoutIcon,
+    Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 272;
@@ -39,11 +40,12 @@ const drawerWidth = 272;
 // ─── Admin nav groups ─────────────────────────────────────────────────────────
 const adminNavGroups = [
     {
-        label: 'Monitoring',
+        label: 'Management',
         icon: MonitorIcon,
         color: '#e8b84b',
         items: [
             { text: 'Dashboard', icon: <DashboardIcon />, path: '/5s-system/dashboard' },
+            { text: 'Monitoring', icon: <AnalyticsIcon />, path: '/5s-system/monitoring' },
         ],
     },
     {
@@ -93,8 +95,8 @@ const Layout = () => {
 
     // CIT-U maroon/gold sidebar palette
     const sidebarBg = darkMode
-        ? 'linear-gradient(180deg, #1a0808 0%, #2d1010 100%)'
-        : 'linear-gradient(180deg, #5a0d0f 0%, #7b1113 100%)';
+        ? 'linear-gradient(180deg, #220a0a 0%, #341414 100%)'
+        : 'linear-gradient(180deg, #7b1113 0%, #a01518 100%)';
     const sidebarGold = '#e8b84b';
     const sidebarMuted = 'rgba(255,255,255,0.45)';
     const sidebarHover = 'rgba(255,255,255,0.08)';

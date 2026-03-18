@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
+import Monitoring from './pages/Monitoring';
 import DataEntry from './pages/DataEntry';
 import DataLogs from './pages/DataLogs';
 import Survey from './pages/Survey';
@@ -37,6 +38,7 @@ function App() {
 
         {/* Admin-only pages */}
         <Route path="dashboard" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
+        <Route path="monitoring" element={<ProtectedRoute adminOnly><Monitoring /></ProtectedRoute>} />
         <Route path="data-entry" element={<ProtectedRoute adminOnly><DataEntry /></ProtectedRoute>} />
         <Route path="data-logs" element={<ProtectedRoute adminOnly><DataLogs /></ProtectedRoute>} />
       </Route>

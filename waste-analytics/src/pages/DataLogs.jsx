@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Box,
     Typography,
@@ -15,13 +15,34 @@ import {
     TextField,
     InputAdornment,
     Tooltip,
+    Button,
+    Menu,
+    MenuItem,
+    ListItemIcon,
+    ListItemText,
+    Divider,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Alert,
+    Snackbar,
 } from '@mui/material';
 import {
     ListAlt as ListAltIcon,
     Search as SearchIcon,
+    FileDownload as ExportIcon,
+    PictureAsPdf as PdfIcon,
+    TableChart as ExcelIcon,
+    CalendarMonth as CalendarIcon,
+    KeyboardArrowDown as ArrowDownIcon,
 } from '@mui/icons-material';
 import { usePageTheme } from '../hooks/usePageTheme';
 import { getTransactions } from '../data/dataStore';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 const categoryColorLight = (cat) => {
@@ -57,6 +78,22 @@ function getComparator(order, orderBy) {
         : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
+// Returns "YYYY-MM" for the current month
+const getCurrentMonth = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+};
+
+// Format "YYYY-MM" → "March 2026"
+const formatMonthLabel = (ym) => {
+    if (!ym) return '';
+    const [y, m] = ym.split('-');
+    const date = new Date(Number(y), Number(m) - 1, 1);
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+};
+
 // ── columns ───────────────────────────────────────────────────────────────────
 
 const columns = [
@@ -77,9 +114,15 @@ const DataLogs = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    // Export state
+    const [exportAnchor, setExportAnchor] = useState(null);
+    const [exportDialogOpen, setExportDialogOpen] = useState(false);
+    const [exportFormat, setExportFormat] = useState(''); // 'pdf' | 'excel'
+    const [exportMonth, setExportMonth] = useState(getCurrentMonth());
+    const [snackbar, setSnackbar] = useState({ open: false, msg: '', severity: 'success' });
+
     useEffect(() => {
         const data = getTransactions();
-        // Reverse so newest entries appear first by default
         setRows([...data].reverse());
     }, []);
 
@@ -107,6 +150,140 @@ const DataLogs = () => {
     const { darkMode } = pt;
     const categoryColor = darkMode ? categoryColorDark : categoryColorLight;
 
+    // ── Export helpers ─────────────────────────────────────────────────────────
+
+    const openExportMenu = (e) => setExportAnchor(e.currentTarget);
+    const closeExportMenu = () => setExportAnchor(null);
+
+    const openExportDialog = (format) => {
+        setExportFormat(format);
+        setExportMonth(getCurrentMonth());
+        closeExportMenu();
+        setExportDialogOpen(true);
+    };
+
+    // Filter all rows (not just current page) by the chosen month
+    const getExportRows = () => {
+        if (!exportMonth) return rows;
+        return rows.filter((r) => {
+            const dateStr = r.date ?? '';
+            // date field can be "YYYY-MM-DD" or other formats — match the "YYYY-MM" prefix
+            return dateStr.startsWith(exportMonth);
+        });
+    };
+
+    const handleExport = () => {
+        const exportRows = getExportRows();
+
+        if (exportRows.length === 0) {
+            setSnackbar({ open: true, msg: `No records found for ${formatMonthLabel(exportMonth)}.`, severity: 'warning' });
+            setExportDialogOpen(false);
+            return;
+        }
+
+        const monthLabel = formatMonthLabel(exportMonth);
+        const filename = `CIT-U-Waste-Data-${exportMonth}`;
+        const tableData = exportRows.map((r) => ([
+            r.date ?? '—',
+            r.officeName ?? '—',
+            r.category ?? '—',
+            r.weight != null ? `${r.weight} kg` : '—',
+            r.notes ?? '—',
+        ]));
+
+        if (exportFormat === 'pdf') {
+            const doc = new jsPDF({ orientation: 'landscape' });
+
+            // Header banner
+            doc.setFillColor(123, 17, 19);
+            doc.rect(0, 0, doc.internal.pageSize.width, 22, 'F');
+            doc.setTextColor(232, 184, 75);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CIT-U 5S+ Waste Monitoring System', 14, 10);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Waste Data Log — ${monthLabel}`, 14, 17);
+
+            // Generated date (right side)
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, doc.internal.pageSize.width - 50, 17);
+
+            // Table
+            autoTable(doc, {
+                startY: 28,
+                head: [['Collection Date', 'Office', 'Waste Category', 'Weight (kg)', 'Notes']],
+                body: tableData,
+                headStyles: {
+                    fillColor: [123, 17, 19],
+                    textColor: [232, 184, 75],
+                    fontStyle: 'bold',
+                    fontSize: 9,
+                },
+                bodyStyles: { fontSize: 8.5, textColor: [30, 30, 30] },
+                alternateRowStyles: { fillColor: [255, 248, 248] },
+                columnStyles: {
+                    0: { cellWidth: 32 },
+                    3: { halign: 'right', cellWidth: 28 },
+                    4: { cellWidth: 60 },
+                },
+                margin: { left: 14, right: 14 },
+                didDrawPage: (data) => {
+                    // Footer on each page
+                    const pageCount = doc.internal.getNumberOfPages();
+                    doc.setFontSize(7);
+                    doc.setTextColor(150);
+                    doc.text(
+                        `Page ${data.pageNumber} of ${pageCount}  |  CIT-U 5S+ Waste Analytics`,
+                        14,
+                        doc.internal.pageSize.height - 8
+                    );
+                },
+            });
+
+            doc.save(`${filename}.pdf`);
+            setSnackbar({ open: true, msg: `PDF exported — ${exportRows.length} records for ${monthLabel}.`, severity: 'success' });
+
+        } else if (exportFormat === 'excel') {
+            const wsData = [
+                ['CIT-U 5S+ Waste Monitoring System'],
+                [`Waste Data Log — ${monthLabel}`],
+                [`Generated: ${new Date().toLocaleDateString()}`],
+                [],
+                ['Collection Date', 'Office', 'Waste Category', 'Weight (kg)', 'Notes'],
+                ...tableData,
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // Column widths
+            ws['!cols'] = [
+                { wch: 18 },
+                { wch: 30 },
+                { wch: 18 },
+                { wch: 14 },
+                { wch: 40 },
+            ];
+
+            // Merge title rows
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } },
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, monthLabel.replace(' ', '_'));
+            XLSX.writeFile(wb, `${filename}.xlsx`);
+            setSnackbar({ open: true, msg: `Excel exported — ${exportRows.length} records for ${monthLabel}.`, severity: 'success' });
+        }
+
+        setExportDialogOpen(false);
+    };
+
+    // ── UI ────────────────────────────────────────────────────────────────────
+
     return (
         <Box sx={{
             p: { xs: 2, sm: 3, md: 4 },
@@ -118,14 +295,12 @@ const DataLogs = () => {
                 top: 0, left: 0, right: 0, height: '300px',
                 background: pt.pageBeforeBg, zIndex: 0,
             },
-        }}
-        >
+        }}>
             <Box sx={{ position: 'relative', zIndex: 1, maxWidth: '1400px', mx: 'auto' }}>
 
                 {/* ── Header ── */}
                 <Box sx={{ mb: 4 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
                         <Box>
                             <Typography
                                 variant="h2"
@@ -144,6 +319,80 @@ const DataLogs = () => {
                             <Typography variant="body1" sx={{ color: pt.subtitleColor, fontWeight: 500, mt: 0.5 }}>
                                 All waste data entries recorded from the Data Entry page.
                             </Typography>
+                        </Box>
+
+                        {/* Export button */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: { xs: 1, md: 1.5 } }}>
+                            <Button
+                                variant="contained"
+                                startIcon={<ExportIcon />}
+                                endIcon={<ArrowDownIcon />}
+                                onClick={openExportMenu}
+                                sx={{
+                                    background: 'linear-gradient(135deg, #7b1113 0%, #a01518 100%)',
+                                    color: '#e8b84b',
+                                    fontWeight: 700,
+                                    borderRadius: '12px',
+                                    px: 2.5,
+                                    py: 1,
+                                    boxShadow: '0 4px 16px rgba(123,17,19,0.35)',
+                                    border: '1px solid rgba(232,184,75,0.25)',
+                                    textTransform: 'none',
+                                    fontSize: '0.9rem',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #a01518 0%, #c62828 100%)',
+                                        boxShadow: '0 6px 24px rgba(123,17,19,0.45)',
+                                    },
+                                }}
+                            >
+                                Export
+                            </Button>
+
+                            {/* Export dropdown menu */}
+                            <Menu
+                                anchorEl={exportAnchor}
+                                open={Boolean(exportAnchor)}
+                                onClose={closeExportMenu}
+                                PaperProps={{
+                                    sx: {
+                                        borderRadius: '16px',
+                                        minWidth: 200,
+                                        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                                        border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(123,17,19,0.1)',
+                                        overflow: 'hidden',
+                                        mt: 0.5,
+                                    },
+                                }}
+                            >
+                                <Box sx={{ px: 2, py: 1.5 }}>
+                                    <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'text.secondary' }}>
+                                        Choose format
+                                    </Typography>
+                                </Box>
+                                <Divider />
+                                <MenuItem onClick={() => openExportDialog('pdf')} sx={{ gap: 1.5, py: 1.5, px: 2 }}>
+                                    <ListItemIcon sx={{ minWidth: 0 }}>
+                                        <PdfIcon sx={{ color: '#b71c1c', fontSize: 22 }} />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary="Export as PDF"
+                                        secondary="Formatted report document"
+                                        primaryTypographyProps={{ fontWeight: 600, fontSize: '0.9rem' }}
+                                        secondaryTypographyProps={{ fontSize: '0.75rem' }}
+                                    />
+                                </MenuItem>
+                                <MenuItem onClick={() => openExportDialog('excel')} sx={{ gap: 1.5, py: 1.5, px: 2 }}>
+                                    <ListItemIcon sx={{ minWidth: 0 }}>
+                                        <ExcelIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary="Export as Excel"
+                                        secondary="Spreadsheet (.xlsx)"
+                                        primaryTypographyProps={{ fontWeight: 600, fontSize: '0.9rem' }}
+                                        secondaryTypographyProps={{ fontSize: '0.75rem' }}
+                                    />
+                                </MenuItem>
+                            </Menu>
                         </Box>
                     </Box>
 
@@ -230,17 +479,12 @@ const DataLogs = () => {
                                             key={row.id ?? idx}
                                             hover sx={pt.tableRowSx}
                                         >
-                                            {/* Collection Date */}
                                             <TableCell sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap', color: pt.tableCellColor }}>
                                                 {row.date ?? '—'}
                                             </TableCell>
-
-                                            {/* Office */}
                                             <TableCell sx={{ fontSize: '0.875rem', color: pt.tableCellColor }}>
                                                 {row.officeName ?? '—'}
                                             </TableCell>
-
-                                            {/* Category */}
                                             <TableCell>
                                                 <Chip
                                                     label={row.category}
@@ -259,13 +503,9 @@ const DataLogs = () => {
                                                     }}
                                                 />
                                             </TableCell>
-
-                                            {/* Weight */}
                                             <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.875rem', color: pt.tableWeightColor }}>
                                                 {row.weight != null ? `${row.weight} kg` : '—'}
                                             </TableCell>
-
-                                            {/* Notes */}
                                             <TableCell sx={{ fontSize: '0.875rem', color: pt.tableNoteColor, maxWidth: 220 }}>
                                                 {row.notes ? (
                                                     <Tooltip title={row.notes} placement="top-start">
@@ -300,6 +540,142 @@ const DataLogs = () => {
                     />
                 </Paper>
             </Box>
+
+            {/* ── Export Dialog ── */}
+            <Dialog
+                open={exportDialogOpen}
+                onClose={() => setExportDialogOpen(false)}
+                PaperProps={{
+                    sx: {
+                        borderRadius: '20px',
+                        minWidth: { xs: '90vw', sm: 420 },
+                        background: darkMode ? '#1e1e2e' : '#ffffff',
+                        border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(123,17,19,0.1)',
+                        boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
+                        overflow: 'hidden',
+                    },
+                }}
+            >
+                {/* Dialog accent bar */}
+                <Box sx={{ height: 5, background: 'linear-gradient(90deg, #e8b84b 0%, #7b1113 100%)' }} />
+
+                <DialogTitle sx={{ pt: 3, pb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        {exportFormat === 'pdf'
+                            ? <PdfIcon sx={{ color: '#b71c1c', fontSize: 28 }} />
+                            : <ExcelIcon sx={{ color: '#2e7d32', fontSize: 28 }} />
+                        }
+                        <Box>
+                            <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', color: darkMode ? 'white' : '#2d1010' }}>
+                                Export as {exportFormat === 'pdf' ? 'PDF' : 'Excel'}
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mt: 0.2 }}>
+                                Select a month to filter the export data
+                            </Typography>
+                        </Box>
+                    </Box>
+                </DialogTitle>
+
+                <DialogContent sx={{ pb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1.5, mb: 1 }}>
+                        <CalendarIcon sx={{ color: '#7b1113', fontSize: 22 }} />
+                        <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
+                            Month to export:
+                        </Typography>
+                    </Box>
+
+                    {/* Native month picker */}
+                    <Box
+                        component="input"
+                        type="month"
+                        value={exportMonth}
+                        onChange={(e) => setExportMonth(e.target.value)}
+                        sx={{
+                            width: '100%',
+                            px: 2, py: 1.4,
+                            borderRadius: '12px',
+                            border: darkMode
+                                ? '1px solid rgba(255,255,255,0.2)'
+                                : '1px solid rgba(123,17,19,0.25)',
+                            background: darkMode ? 'rgba(255,255,255,0.06)' : 'white',
+                            color: darkMode ? 'white' : '#2d1010',
+                            fontSize: '1rem',
+                            outline: 'none',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            '&:focus': {
+                                border: '1px solid #7b1113',
+                                boxShadow: '0 0 0 3px rgba(123,17,19,0.12)',
+                            },
+                            colorScheme: darkMode ? 'dark' : 'light',
+                        }}
+                    />
+
+                    {exportMonth && (
+                        <Box sx={{
+                            mt: 2, px: 2, py: 1.2, borderRadius: '10px',
+                            background: darkMode ? 'rgba(232,184,75,0.1)' : 'rgba(123,17,19,0.05)',
+                            border: darkMode ? '1px solid rgba(232,184,75,0.2)' : '1px solid rgba(123,17,19,0.1)',
+                        }}>
+                            <Typography sx={{ fontSize: '0.82rem', color: darkMode ? '#e8b84b' : '#7b1113', fontWeight: 600 }}>
+                                {(() => {
+                                    const count = rows.filter(r => (r.date ?? '').startsWith(exportMonth)).length;
+                                    return count > 0
+                                        ? `${count} record${count !== 1 ? 's' : ''} found for ${formatMonthLabel(exportMonth)}`
+                                        : `No records found for ${formatMonthLabel(exportMonth)}`;
+                                })()}
+                            </Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+
+                <DialogActions sx={{ px: 3, pb: 3, gap: 1.5 }}>
+                    <Button
+                        onClick={() => setExportDialogOpen(false)}
+                        sx={{
+                            borderRadius: '10px', textTransform: 'none', fontWeight: 600,
+                            color: 'text.secondary', px: 2.5,
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleExport}
+                        startIcon={exportFormat === 'pdf' ? <PdfIcon /> : <ExcelIcon />}
+                        disabled={!exportMonth}
+                        sx={{
+                            borderRadius: '10px', textTransform: 'none', fontWeight: 700, px: 3,
+                            background: exportFormat === 'pdf'
+                                ? 'linear-gradient(135deg, #7b1113 0%, #a01518 100%)'
+                                : 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
+                            '&:hover': {
+                                background: exportFormat === 'pdf'
+                                    ? 'linear-gradient(135deg, #a01518 0%, #c62828 100%)'
+                                    : 'linear-gradient(135deg, #2e7d32 0%, #388e3c 100%)',
+                            },
+                        }}
+                    >
+                        Download {exportFormat === 'pdf' ? 'PDF' : 'Excel'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* ── Success / Warning snackbar ── */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+                    severity={snackbar.severity}
+                    sx={{ borderRadius: '12px', fontWeight: 600 }}
+                >
+                    {snackbar.msg}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
