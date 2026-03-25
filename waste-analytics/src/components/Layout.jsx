@@ -33,7 +33,9 @@ import {
     LightMode as LightModeIcon,
     Logout as LogoutIcon,
     Analytics as AnalyticsIcon,
+    TipsAndUpdates as InsightIcon,
 } from '@mui/icons-material';
+import AIChatbot from './AIChatbot';
 
 const drawerWidth = 272;
 
@@ -44,8 +46,9 @@ const adminNavGroups = [
         icon: MonitorIcon,
         color: '#e8b84b',
         items: [
-            { text: 'Dashboard', icon: <DashboardIcon />, path: '/5s-system/dashboard' },
-            { text: 'Monitoring', icon: <AnalyticsIcon />, path: '/5s-system/monitoring' },
+            { text: 'Dashboard',  icon: <DashboardIcon />,  path: '/5s-system/dashboard'  },
+            { text: 'Monitoring', icon: <AnalyticsIcon />,  path: '/5s-system/monitoring' },
+            { text: 'Insights',   icon: <InsightIcon />,    path: '/5s-system/insights'   },
         ],
     },
     {
@@ -380,6 +383,8 @@ const Layout = () => {
             >
                 <Outlet />
             </Box>
+            {/* Global floating AI chatbot */}
+            <AIChatbot />
         </Box>
     );
 };

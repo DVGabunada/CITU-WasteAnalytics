@@ -399,12 +399,6 @@ const Dashboard = () => {
                 </Grid>
             </Box>
 
-            {/* Mascot Dashboard Assistant */}
-            <MascotBubble
-                variant="corner"
-                size={110}
-                message={`Total waste recorded: ${kpiData.totalWaste} kg. Recycling rate: ${kpiData.recyclableRate}%. Keep monitoring! ♻️`}
-            />
         </Box>
     );
 };
