@@ -1,63 +1,66 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, Typography, Box } from '@mui/material';
 import PropTypes from 'prop-types';
 import { useTheme } from '@mui/material/styles';
 
 const WasteTrendChart = ({ data }) => {
     const theme = useTheme();
+    const dark = theme.palette.mode === 'dark';
+
+    const axisColor   = dark ? 'rgba(255,255,255,0.6)'  : '#666';
+    const gridColor   = dark ? 'rgba(255,255,255,0.07)' : '#E0E0E0';
+    const tooltipBg   = dark ? '#1e1e2e'                : 'rgba(255,255,255,0.97)';
+    const tooltipText = dark ? '#f0f0f0'                : '#333';
 
     return (
         <div style={{ width: '100%', height: 500 }}>
             <ResponsiveContainer>
                 <AreaChart
                     data={data}
-                    margin={{
-                        top: 20,
-                        right: 30,
-                        left: 0,
-                        bottom: 0,
-                    }}
+                    margin={{ top: 20, right: 30, left: 10, bottom: 0 }}
                 >
                     <defs>
-                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#43a047" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#43a047" stopOpacity={0} />
+                        <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%"  stopColor="#a01518" stopOpacity={dark ? 0.5 : 0.35} />
+                            <stop offset="95%" stopColor="#a01518" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E0E0E0" />
+
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
+
                     <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 12, fill: '#666' }}
+                        tick={{ fontSize: 12, fill: axisColor }}
                         tickLine={false}
                         axisLine={false}
                         minTickGap={30}
                     />
                     <YAxis
-                        tick={{ fontSize: 12, fill: '#666' }}
+                        tick={{ fontSize: 12, fill: axisColor }}
                         tickLine={false}
                         axisLine={false}
-                        label={{ value: 'kg', angle: -90, position: 'insideLeft', fill: '#999' }}
+                        width={55}
+                        label={{ value: 'kg', angle: -90, position: 'insideLeft', fill: axisColor, fontSize: 12 }}
                     />
                     <Tooltip
                         contentStyle={{
                             borderRadius: 16,
-                            border: 'none',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)'
+                            border: dark ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                            backgroundColor: tooltipBg,
                         }}
-                        itemStyle={{ color: '#2e7d32', fontWeight: 700 }}
+                        itemStyle={{ color: dark ? '#e8b84b' : '#a01518', fontWeight: 700 }}
+                        labelStyle={{ color: tooltipText, marginBottom: '0.4rem', fontWeight: 600 }}
                         formatter={(value) => [`${value} kg`, 'Total Waste']}
-                        labelStyle={{ color: '#666', marginBottom: '0.5rem' }}
                     />
                     <Area
                         type="monotone"
                         dataKey="totalWeight"
-                        stroke="#43a047"
-                        strokeWidth={4}
+                        stroke="#a01518"
+                        strokeWidth={3}
                         fillOpacity={1}
-                        fill="url(#colorTotal)"
-                        activeDot={{ r: 8, fill: '#2e7d32', stroke: '#fff', strokeWidth: 4 }}
+                        fill="url(#trendGrad)"
+                        activeDot={{ r: 7, fill: '#e8b84b', stroke: dark ? '#1e1e2e' : '#fff', strokeWidth: 3 }}
                     />
                 </AreaChart>
             </ResponsiveContainer>
@@ -65,8 +68,5 @@ const WasteTrendChart = ({ data }) => {
     );
 };
 
-WasteTrendChart.propTypes = {
-    data: PropTypes.array.isRequired
-}
-
+WasteTrendChart.propTypes = { data: PropTypes.array.isRequired };
 export default WasteTrendChart;

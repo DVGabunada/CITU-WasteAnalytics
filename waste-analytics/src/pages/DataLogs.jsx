@@ -36,7 +36,12 @@ import {
     TableChart as ExcelIcon,
     CalendarMonth as CalendarIcon,
     KeyboardArrowDown as ArrowDownIcon,
+    FilterList as FilterListIcon,
+    TrendingDown as LeastIcon,
 } from '@mui/icons-material';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import { usePageTheme } from '../hooks/usePageTheme';
 import { getTransactions } from '../data/dataStore';
 import jsPDF from 'jspdf';
@@ -113,6 +118,7 @@ const DataLogs = () => {
     const [orderBy, setOrderBy] = useState('date');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [maxWeight, setMaxWeight] = useState('all'); // 'all'|5|20|50|100
 
     // Export state
     const [exportAnchor, setExportAnchor] = useState(null);
@@ -135,13 +141,20 @@ const DataLogs = () => {
 
     const filtered = rows.filter((r) => {
         const q = filter.toLowerCase();
-        return (
+        const textMatch =
             (r.officeName ?? '').toLowerCase().includes(q) ||
             (r.category ?? '').toLowerCase().includes(q) ||
             (r.date ?? '').toLowerCase().includes(q) ||
-            (r.notes ?? '').toLowerCase().includes(q)
-        );
+            (r.notes ?? '').toLowerCase().includes(q);
+        const weightMatch = maxWeight === 'all' || (r.weight ?? 0) <= Number(maxWeight);
+        return textMatch && weightMatch;
     });
+
+    const handleLeastFirst = () => {
+        setOrderBy('weight');
+        setOrder('asc');
+        setPage(0);
+    };
 
     const sorted = [...filtered].sort(getComparator(order, orderBy));
     const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -415,8 +428,8 @@ const DataLogs = () => {
                         background: 'linear-gradient(90deg, #e8b84b 0%, #7b1113 100%)',
                     },
                 }}>
-                    {/* Search bar */}
-                    <Box sx={{ px: 3, pt: 3, pb: 2 }}>
+                    {/* Search + filter bar */}
+                    <Box sx={{ px: 3, pt: 3, pb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                         <TextField
                             variant="outlined"
                             size="small"
@@ -430,9 +443,40 @@ const DataLogs = () => {
                                     </InputAdornment>
                                 ),
                             }}
+                            sx={{ width: { xs: '100%', sm: 340 }, ...pt.inputSx }}
+                        />
+
+                        {/* Max weight filter */}
+                        <FormControl size="small" sx={{ minWidth: 170, ...pt.inputSx }}>
+                            <InputLabel sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '0.85rem' }}>
+                                <FilterListIcon sx={{ fontSize: 15 }} /> Max Weight
+                            </InputLabel>
+                            <Select
+                                value={maxWeight}
+                                label="Max Weight"
+                                onChange={(e) => { setMaxWeight(e.target.value); setPage(0); }}
+                                sx={{ borderRadius: '10px', fontSize: '0.875rem' }}
+                            >
+                                <MenuItem value="all">All weights</MenuItem>
+                                <MenuItem value={5}>≤ 5 kg</MenuItem>
+                                <MenuItem value={20}>≤ 20 kg</MenuItem>
+                                <MenuItem value={50}>≤ 50 kg</MenuItem>
+                                <MenuItem value={100}>≤ 100 kg</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        {/* Least waste first shortcut */}
+                        <Chip
+                            icon={<LeastIcon sx={{ fontSize: 16 }} />}
+                            label="Least waste first"
+                            onClick={handleLeastFirst}
+                            variant={orderBy === 'weight' && order === 'asc' ? 'filled' : 'outlined'}
                             sx={{
-                                width: { xs: '100%', sm: 380 },
-                                ...pt.inputSx,
+                                cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem',
+                                borderColor: '#e8b84b',
+                                color: orderBy === 'weight' && order === 'asc' ? 'white' : '#e8b84b',
+                                bgcolor: orderBy === 'weight' && order === 'asc' ? '#a01518' : 'transparent',
+                                '&:hover': { bgcolor: 'rgba(232,184,75,0.12)' },
                             }}
                         />
                     </Box>

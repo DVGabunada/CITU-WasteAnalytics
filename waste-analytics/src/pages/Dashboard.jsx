@@ -1,7 +1,7 @@
 import { getTransactions } from '../data/dataStore';
 import React, { useMemo, useState, useEffect } from 'react';
-import { Grid, Box, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Chip, Avatar } from '@mui/material';
-import { sub, isAfter, parseISO, startOfDay, isSameDay } from 'date-fns';
+import { Grid, Box, Typography, Paper, Chip, Avatar, IconButton, Tooltip } from '@mui/material';
+import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { motion } from 'framer-motion';
 import { wasteCategories } from '../data/wasteCategories';
 import WasteCategoryChart from '../components/Charts/WasteCategoryChart';
@@ -14,8 +14,10 @@ import {
     Recycling,
     TrendingUp,
     Business,
-    CalendarToday,
-    ArrowUpward
+    CalendarMonth,
+    ArrowUpward,
+    ChevronLeft,
+    ChevronRight,
 } from '@mui/icons-material';
 
 const StatCard = ({ title, value, unit, icon: Icon, gradient, percentage, delay }) => (
@@ -116,8 +118,21 @@ const StatCard = ({ title, value, unit, icon: Icon, gradient, percentage, delay 
 );
 
 const Dashboard = () => {
-    const [period, setPeriod] = useState('month');
+    const now = new Date();
+    const [selectedMonth, setSelectedMonth] = useState(format(now, 'yyyy-MM'));
     const [transactions, setTransactions] = useState([]);
+
+    const prevMonth = () => {
+        const [y, m] = selectedMonth.split('-').map(Number);
+        const d = new Date(y, m - 2, 1);
+        setSelectedMonth(format(d, 'yyyy-MM'));
+    };
+    const nextMonth = () => {
+        const [y, m] = selectedMonth.split('-').map(Number);
+        const d = new Date(y, m, 1);
+        if (d <= now) setSelectedMonth(format(d, 'yyyy-MM'));
+    };
+    const isCurrentMonth = selectedMonth === format(now, 'yyyy-MM');
 
     useEffect(() => {
         setTransactions(getTransactions());
@@ -131,32 +146,15 @@ const Dashboard = () => {
         const officeMap = {};
         const dailyMap = {};
 
-        // Filter Date Logic
-        const today = startOfDay(new Date());
-        let startDate;
-        let filteredTransactions = [];
+        // Filter to the selected month
+        const [y, m] = selectedMonth.split('-').map(Number);
+        const start = startOfMonth(new Date(y, m - 1, 1));
+        const end   = endOfMonth(start);
 
-        if (period === 'today') {
-            filteredTransactions = transactions.filter(t => {
-                const tDate = parseISO(t.date);
-                return isSameDay(tDate, new Date());
-            });
-        } else {
-            if (period === 'week') {
-                startDate = sub(today, { days: 7 });
-            } else if (period === 'month') {
-                startDate = sub(today, { days: 30 });
-            } else if (period === 'year') {
-                startDate = sub(today, { days: 365 });
-            }
-
-            filteredTransactions = transactions.filter(t => {
-                const tDate = parseISO(t.date);
-                // check if startDate is defined, otherwise return true (or handle logic)
-                // Existing logic only handled week/month/year.
-                return startDate ? isAfter(tDate, startDate) : true;
-            });
-        }
+        const filteredTransactions = transactions.filter(t => {
+            try { return isWithinInterval(parseISO(t.date), { start, end }); }
+            catch { return false; }
+        });
 
         filteredTransactions.forEach(t => {
             const weight = Number(t.weight);
@@ -199,9 +197,10 @@ const Dashboard = () => {
             categoryData,
             officeData,
             trendData,
-            topOffice: officeData.length > 0 ? officeData[0] : { name: 'N/A', value: 0 }
+            topOffice: officeData.length > 0 ? officeData[0] : { name: 'N/A', value: 0 },
+            recordCount: filteredTransactions.length,
         };
-    }, [period, transactions]);
+    }, [selectedMonth, transactions]);
 
     const pt = usePageTheme();
 
@@ -253,23 +252,53 @@ const Dashboard = () => {
                         // mt: 3, // Removed mt:3 as it was on the outer box, now applied to this box
                     }}>
                         <Chip
-                            icon={<CalendarToday />}
+                            icon={<CalendarMonth />}
                             label={new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             sx={pt.chipSx}
                         />
 
-                        <FormControl sx={{ minWidth: 180 }}>
-                            <Select
-                                value={period}
-                                onChange={(e) => setPeriod(e.target.value)}
-                                sx={pt.selectSx}
-                            >
-                                <MenuItem value="today">Today</MenuItem>
-                                <MenuItem value="week">This Week</MenuItem>
-                                <MenuItem value="month">This Month</MenuItem>
-                                <MenuItem value="year">This Year</MenuItem>
-                            </Select>
-                        </FormControl>
+                        {/* Month/Year picker */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5,
+                            bgcolor: pt.cardBg ?? (pt.darkMode ? 'rgba(255,255,255,0.06)' : 'white'),
+                            border: pt.darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(123,17,19,0.18)',
+                            borderRadius: '14px', px: 0.5, py: 0.5,
+                            boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                        }}>
+                            <Tooltip title="Previous month">
+                                <IconButton size="small" onClick={prevMonth}
+                                    sx={{ color: '#a01518', '&:hover': { bgcolor: 'rgba(160,21,24,0.08)' } }}>
+                                    <ChevronLeft fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+
+                            <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 1, px: 1 }}>
+                                <CalendarMonth sx={{ color: '#a01518', fontSize: 18, flexShrink: 0 }} />
+                                <Box
+                                    component="input"
+                                    type="month"
+                                    value={selectedMonth}
+                                    max={format(now, 'yyyy-MM')}
+                                    onChange={e => setSelectedMonth(e.target.value)}
+                                    sx={{
+                                        border: 'none', outline: 'none', background: 'transparent',
+                                        fontFamily: 'inherit', fontSize: '0.9rem', fontWeight: 700,
+                                        color: pt.darkMode ? 'white' : '#2d1010',
+                                        cursor: 'pointer', width: 148,
+                                        colorScheme: pt.darkMode ? 'dark' : 'light',
+                                        '&::-webkit-calendar-picker-indicator': { opacity: 0, width: 0 },
+                                    }}
+                                />
+                            </Box>
+
+                            <Tooltip title="Next month">
+                                <span>
+                                    <IconButton size="small" onClick={nextMonth} disabled={isCurrentMonth}
+                                        sx={{ color: isCurrentMonth ? 'grey.400' : '#a01518', '&:hover': { bgcolor: 'rgba(160,21,24,0.08)' } }}>
+                                        <ChevronRight fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </Box>
 
                     </Box>
                 </Box>
@@ -312,7 +341,7 @@ const Dashboard = () => {
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                         <StatCard
                             title="Avg. Daily Waste"
-                            value={period === 'week' ? (Number(kpiData.totalWaste) / 7).toFixed(1) : period === 'month' ? (Number(kpiData.totalWaste) / 30).toFixed(1) : (Number(kpiData.totalWaste) / 365).toFixed(1)}
+                            value={(Number(kpiData.totalWaste) / new Date(Number(selectedMonth.split('-')[0]), Number(selectedMonth.split('-')[1]), 0).getDate()).toFixed(1)}
                             unit="kg"
                             icon={TrendingUp}
                             gradient="linear-gradient(135deg, #ab47bc 0%, #8e24aa 100%)"
