@@ -54,22 +54,22 @@ const LoginPage = () => {
         navigate('/5s-system/awareness');
     };
 
-    const handleAdminLogin = () => {
+    const handleAdminLogin = async () => {
         setError('');
         if (!username.trim() || !password) { setError('Please fill in both fields.'); return; }
         setLoading(true);
-        const result = adminLogin(username.trim(), password);
+        const result = await adminLogin(username.trim(), password);
         setLoading(false);
         if (!result.ok) { setError(result.error); return; }
         navigate('/5s-system/dashboard');
     };
 
-    const handleAdminSignup = () => {
+    const handleAdminSignup = async () => {
         setError('');
         if (!username.trim() || !password) { setError('Please fill in both fields.'); return; }
         if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
         setLoading(true);
-        const result = adminSignup(username.trim(), password);
+        const result = await adminSignup(username.trim(), password);
         setLoading(false);
         if (!result.ok) { setError(result.error); return; }
         navigate('/5s-system/dashboard');

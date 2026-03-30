@@ -27,6 +27,7 @@ import {
     DialogActions,
     Alert,
     Snackbar,
+    CircularProgress,
 } from '@mui/material';
 import {
     ListAlt as ListAltIcon,
@@ -43,7 +44,7 @@ import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import { usePageTheme } from '../hooks/usePageTheme';
-import { getTransactions } from '../data/dataStore';
+import { getAllEntries } from '../api/api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -113,6 +114,8 @@ const columns = [
 
 const DataLogs = () => {
     const [rows, setRows] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState('');
     const [filter, setFilter] = useState('');
     const [order, setOrder] = useState('desc');
     const [orderBy, setOrderBy] = useState('date');
@@ -128,8 +131,27 @@ const DataLogs = () => {
     const [snackbar, setSnackbar] = useState({ open: false, msg: '', severity: 'success' });
 
     useEffect(() => {
-        const data = getTransactions();
-        setRows([...data].reverse());
+        const fetchData = async () => {
+            try {
+                const data = await getAllEntries();
+                // Map backend fields → what the table columns expect
+                const mapped = data.map(e => ({
+                    id:         e.id,
+                    date:       e.date,
+                    officeName: e.office,
+                    category:   e.wasteCategory,
+                    weight:     e.weight,
+                    collector:  e.collector,
+                    notes:      e.note,
+                }));
+                setRows([...mapped].reverse());
+            } catch {
+                setFetchError('Could not load data. Is the backend running?');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, []);
 
     const handleSort = (col) => {
@@ -509,7 +531,22 @@ const DataLogs = () => {
                             </TableHead>
 
                             <TableBody>
-                                {paginated.length === 0 ? (
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={columns.length} align="center" sx={{ py: 8 }}>
+                                            <CircularProgress size={32} sx={{ color: '#7b1113' }} />
+                                            <Typography color="text.secondary" sx={{ mt: 1.5 }}>
+                                                Loading entries…
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : fetchError ? (
+                                    <TableRow>
+                                        <TableCell colSpan={columns.length} align="center" sx={{ py: 8 }}>
+                                            <Typography color="error">{fetchError}</Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : paginated.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={columns.length} align="center" sx={{ py: 8 }}>
                                             <Typography color="text.secondary">

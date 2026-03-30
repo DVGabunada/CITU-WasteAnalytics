@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { addTransaction } from '../data/dataStore';
+import { createEntry } from '../api/api';
 import React, { useState } from 'react';
 import {
     Box, Typography, Paper, Grid, TextField,
@@ -37,6 +37,9 @@ const DataEntry = () => {
     const [rows, setRows] = useState([emptyRow()]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [submittedCount, setSubmittedCount] = useState(0);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [openError, setOpenError] = useState(false);
 
     const pt = usePageTheme();
     const { darkMode } = pt;
@@ -50,28 +53,34 @@ const DataEntry = () => {
         setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
 
     // ── Submit ────────────────────────────────────────────────────────────────
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const valid = rows.filter(r => r.selectedOffice && r.category && r.weight);
         if (!valid.length) return;
 
-        valid.forEach(r => {
-            addTransaction({
-                id: Date.now().toString() + Math.random(),
-                date: format(r.date, 'yyyy-MM-dd'),
-                submittedAt: new Date().toISOString(),
-                officeId: r.selectedOffice.id,
-                officeName: r.selectedOffice.name,
-                category: r.category,
-                weight: Number(r.weight),
-                unit: 'kg',
-                notes: r.notes,
-            });
-        });
-
-        setSubmittedCount(valid.length);
-        setRows([emptyRow()]);
-        setOpenSnackbar(true);
+        setSubmitLoading(true);
+        try {
+            await Promise.all(
+                valid.map(r =>
+                    createEntry({
+                        date: format(r.date, 'yyyy-MM-dd'),
+                        office: r.selectedOffice.name,
+                        wasteCategory: r.category,
+                        weight: Number(r.weight),
+                        collector: r.collectedBy || '',
+                        note: r.notes || '',
+                    })
+                )
+            );
+            setSubmittedCount(valid.length);
+            setRows([emptyRow()]);
+            setOpenSnackbar(true);
+        } catch {
+            setErrorMsg('Failed to submit. Please check your connection and try again.');
+            setOpenError(true);
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     // ── Shared field sx ───────────────────────────────────────────────────────
@@ -379,6 +388,7 @@ const DataEntry = () => {
                                     type="submit"
                                     variant="contained"
                                     size="large"
+                                    disabled={submitLoading}
                                     endIcon={<SendIcon />}
                                     sx={{
                                         px: 6, py: 1.8, fontSize: '1.05rem',
@@ -394,7 +404,9 @@ const DataEntry = () => {
                                         transition: 'all 0.3s ease',
                                     }}
                                 >
-                                    Submit {rows.length > 1 ? `${rows.length} Entries` : 'Entry'}
+                                    {submitLoading
+                                        ? 'Submitting…'
+                                        : `Submit ${rows.length > 1 ? `${rows.length} Entries` : 'Entry'}`}
                                 </Button>
                             </Box>
                         </Box>
@@ -416,6 +428,23 @@ const DataEntry = () => {
                     sx={{ width: '100%', fontSize: '1.05rem', borderRadius: 2 }}
                 >
                     {submittedCount} {submittedCount === 1 ? 'entry' : 'entries'} recorded successfully!
+                </Alert>
+            </Snackbar>
+
+            {/* ── Error snackbar ── */}
+            <Snackbar
+                open={openError}
+                autoHideDuration={6000}
+                onClose={() => setOpenError(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                sx={{ zIndex: 9999 }}
+            >
+                <Alert
+                    onClose={() => setOpenError(false)}
+                    severity="error"
+                    sx={{ width: '100%', fontSize: '1rem', borderRadius: 2 }}
+                >
+                    {errorMsg}
                 </Alert>
             </Snackbar>
         </Box>

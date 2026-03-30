@@ -1,20 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createUser, getUserByUsername } from '../api/api';
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
-// ─── Admin credentials stored in localStorage key ─────────────────────────────
-const ADMIN_STORE_KEY = 'citu_5s_admins';
 const SESSION_KEY = 'citu_5s_session';
-
-function getAdmins() {
-    try { return JSON.parse(localStorage.getItem(ADMIN_STORE_KEY)) || []; }
-    catch { return []; }
-}
-
-function saveAdmins(list) {
-    localStorage.setItem(ADMIN_STORE_KEY, JSON.stringify(list));
-}
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 export const AuthProvider = ({ children }) => {
@@ -35,26 +25,43 @@ export const AuthProvider = ({ children }) => {
     };
 
     // ── Admin signup ──────────────────────────────────────────────────────────
-    const adminSignup = (username, password) => {
-        const admins = getAdmins();
-        if (admins.find(a => a.username.toLowerCase() === username.toLowerCase())) {
-            return { ok: false, error: 'Username already exists.' };
+    const adminSignup = async (username, password) => {
+        try {
+            // Check for duplicate username
+            const existing = await getUserByUsername(username);
+            if (existing.length > 0) {
+                return { ok: false, error: 'Username already exists.' };
+            }
+
+            // Register with backend
+            const res = await createUser(username, password);
+            if (!res.ok) {
+                return { ok: false, error: 'Failed to create account. Please try again.' };
+            }
+
+            setSession({ role: 'admin', username });
+            return { ok: true };
+        } catch {
+            return { ok: false, error: 'Network error. Is the backend running?' };
         }
-        const updated = [...admins, { username, password }];
-        saveAdmins(updated);
-        setSession({ role: 'admin', username });
-        return { ok: true };
     };
 
     // ── Admin login ───────────────────────────────────────────────────────────
-    const adminLogin = (username, password) => {
-        const admins = getAdmins();
-        const match = admins.find(
-            a => a.username.toLowerCase() === username.toLowerCase() && a.password === password
-        );
-        if (!match) return { ok: false, error: 'Invalid username or password.' };
-        setSession({ role: 'admin', username: match.username });
-        return { ok: true };
+    const adminLogin = async (username, password) => {
+        try {
+            const users = await getUserByUsername(username);
+            if (users.length === 0) {
+                return { ok: false, error: 'Invalid username or password.' };
+            }
+            const user = users[0];
+            if (user.password !== password) {
+                return { ok: false, error: 'Invalid username or password.' };
+            }
+            setSession({ role: 'admin', username: user.username, isAdmin: user.admin });
+            return { ok: true };
+        } catch {
+            return { ok: false, error: 'Network error. Is the backend running?' };
+        }
     };
 
     // ── Logout ────────────────────────────────────────────────────────────────
