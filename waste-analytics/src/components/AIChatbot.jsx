@@ -14,9 +14,9 @@ import { getTransactions } from '../data/dataStore';
 import { format } from 'date-fns';
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY ?? '';
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL    = 'llama-3.1-8b-instant'; // 14,400 req/day free, no region limits
+const SEALION_KEY = import.meta.env.VITE_SEALION_API_KEY ?? '';
+const SEALION_URL = 'https://api.sea-lion.ai/v1/chat/completions';
+const MODEL       = 'aisingapore/Gemma-SEA-LION-v4-27B-IT';
 
 // ── Live data context ─────────────────────────────────────────────────────────
 const buildDataContext = () => {
@@ -149,13 +149,13 @@ const AIChatbot = () => {
         setMessages(prev => [...prev, { role: 'bot', typing: true, id: 'typing' }]);
 
         try {
-            if (!GROQ_KEY) throw new Error('NO_KEY');
+            if (!SEALION_KEY) throw new Error('NO_KEY');
 
-            const res = await fetch(GROQ_URL, {
+            const res = await fetch(SEALION_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_KEY}`,
+                    'Authorization': `Bearer ${SEALION_KEY}`,
                 },
                 body: JSON.stringify({
                     model: MODEL,
@@ -165,7 +165,7 @@ const AIChatbot = () => {
                         { role: 'user', content: userText },
                     ],
                     temperature: 0.7,
-                    max_tokens: 500,
+                    max_completion_tokens: 500,
                 }),
             });
 
@@ -187,7 +187,7 @@ const AIChatbot = () => {
         } catch (err) {
             const fallback =
                 err.message === 'NO_KEY'
-                    ? `⚠️ Groq API key not set.\n\n1. Get a free key at console.groq.com\n2. Add VITE_GROQ_API_KEY=your_key to your .env file\n3. Restart the dev server`
+                    ? `⚠️ Sea-Lion API key not set.\n\n1. Get a free key at sea-lion.ai\n2. Add VITE_SEALION_API_KEY=your_key to your .env file\n3. Restart the dev server`
                 : err.message === 'RATE_LIMIT'
                     ? `⏳ Rate limit reached — please wait a moment and try again.`
                     : `Sorry, I couldn't reach the AI. (${err.message})`;
@@ -289,7 +289,7 @@ const AIChatbot = () => {
                     {/* Powered by */}
                     <Box sx={{ px: 2, py: 0.5, display: 'flex', alignItems: 'center', gap: 0.5, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                         <SparkleIcon sx={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }} />
-                        <Typography sx={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)' }}>Powered by Groq · Llama 3.1</Typography>
+                        <Typography sx={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)' }}>Powered by Sea-Lion · AI Singapore</Typography>
                     </Box>
 
                     {/* Input */}

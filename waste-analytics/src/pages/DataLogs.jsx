@@ -16,6 +16,8 @@ import {
     InputAdornment,
     Tooltip,
     Button,
+    IconButton,
+    Checkbox,
     Menu,
     MenuItem,
     ListItemIcon,
@@ -28,6 +30,7 @@ import {
     Alert,
     Snackbar,
     CircularProgress,
+    Autocomplete,
 } from '@mui/material';
 import {
     ListAlt as ListAltIcon,
@@ -39,12 +42,19 @@ import {
     KeyboardArrowDown as ArrowDownIcon,
     FilterList as FilterListIcon,
     TrendingDown as LeastIcon,
+    EditOutlined as EditIcon,
+    DeleteOutlineRounded as DeleteIcon,
+    WarningAmberRounded as WarnIcon,
+    SaveOutlined as SaveIcon,
+    CloseRounded as CloseIcon,
 } from '@mui/icons-material';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import { usePageTheme } from '../hooks/usePageTheme';
-import { getAllEntries } from '../api/api';
+import { getAllEntries, updateEntry, deleteEntry } from '../api/api';
+import { offices } from '../data/offices';
+import { wasteCategories } from '../data/wasteCategories';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -121,12 +131,25 @@ const DataLogs = () => {
     const [orderBy, setOrderBy] = useState('date');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [maxWeight, setMaxWeight] = useState('all'); // 'all'|5|20|50|100
+    const [maxWeight, setMaxWeight] = useState('all');
+
+    // Row selection
+    const [selected, setSelected] = useState(new Set());
+
+    // Edit modal
+    const [editOpen, setEditOpen] = useState(false);
+    const [editRow, setEditRow] = useState(null);   // the row being edited
+    const [editForm, setEditForm] = useState({});   // live form values
+    const [editSaving, setEditSaving] = useState(false);
+
+    // Delete confirm
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteWorking, setDeleteWorking] = useState(false);
 
     // Export state
     const [exportAnchor, setExportAnchor] = useState(null);
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
-    const [exportFormat, setExportFormat] = useState(''); // 'pdf' | 'excel'
+    const [exportFormat, setExportFormat] = useState('');
     const [exportMonth, setExportMonth] = useState(getCurrentMonth());
     const [snackbar, setSnackbar] = useState({ open: false, msg: '', severity: 'success' });
 
@@ -184,6 +207,79 @@ const DataLogs = () => {
     const pt = usePageTheme();
     const { darkMode } = pt;
     const categoryColor = darkMode ? categoryColorDark : categoryColorLight;
+
+    // ── Selection helpers ──────────────────────────────────────────────────────
+    const isSelected = (id) => selected.has(id);
+    const toggleSelect = (id) => {
+        setSelected(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+    };
+    const toggleSelectAll = () => {
+        if (selected.size === paginated.length && paginated.length > 0) {
+            setSelected(new Set());
+        } else {
+            setSelected(new Set(paginated.map(r => r.id)));
+        }
+    };
+    const allPageSelected = paginated.length > 0 && paginated.every(r => selected.has(r.id));
+    const someSelected = selected.size > 0 && !allPageSelected;
+
+    // ── Edit handlers ──────────────────────────────────────────────────────────
+    const openEdit = (row) => {
+        setEditRow(row);
+        setEditForm({
+            date:       row.date       ?? '',
+            officeName: row.officeName ?? '',
+            category:   row.category   ?? '',
+            weight:     row.weight     ?? '',
+            notes:      row.notes      ?? '',
+        });
+        setEditOpen(true);
+    };
+    const handleEditSave = async () => {
+        if (!editRow) return;
+        setEditSaving(true);
+        try {
+            await updateEntry(editRow.id, {
+                date:         editForm.date,
+                office:       editForm.officeName,
+                wasteCategory: editForm.category,
+                weight:       Number(editForm.weight),
+                note:         editForm.notes,
+            });
+            // Update local state immediately
+            setRows(prev => prev.map(r =>
+                r.id === editRow.id
+                    ? { ...r, ...editForm, weight: Number(editForm.weight) }
+                    : r
+            ));
+            setSnackbar({ open: true, msg: 'Record updated successfully.', severity: 'success' });
+            setEditOpen(false);
+        } catch {
+            setSnackbar({ open: true, msg: 'Failed to update record. Is the backend running?', severity: 'error' });
+        } finally {
+            setEditSaving(false);
+        }
+    };
+
+    // ── Delete handlers ────────────────────────────────────────────────────────
+    const handleDeleteConfirm = async () => {
+        setDeleteWorking(true);
+        try {
+            await Promise.all([...selected].map(id => deleteEntry(id)));
+            setRows(prev => prev.filter(r => !selected.has(r.id)));
+            setSnackbar({ open: true, msg: `${selected.size} record(s) deleted.`, severity: 'success' });
+            setSelected(new Set());
+            setDeleteOpen(false);
+        } catch {
+            setSnackbar({ open: true, msg: 'Failed to delete one or more records.', severity: 'error' });
+        } finally {
+            setDeleteWorking(false);
+        }
+    };
 
     // ── Export helpers ─────────────────────────────────────────────────────────
 
@@ -501,12 +597,56 @@ const DataLogs = () => {
                                 '&:hover': { bgcolor: 'rgba(232,184,75,0.12)' },
                             }}
                         />
+
+                        {/* ── Edit / Delete action buttons ── */}
+                        <Box sx={{ ml: 'auto', display: 'flex', gap: 1, alignItems: 'center' }}>
+                            {selected.size === 1 && (
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<EditIcon />}
+                                    onClick={() => openEdit(rows.find(r => r.id === [...selected][0]))}
+                                    sx={{
+                                        borderRadius: '10px', textTransform: 'none', fontWeight: 700,
+                                        fontSize: '0.84rem', borderColor: '#e8b84b', color: '#e8b84b',
+                                        '&:hover': { bgcolor: 'rgba(232,184,75,0.1)', borderColor: '#e8b84b' },
+                                    }}
+                                >
+                                    Edit
+                                </Button>
+                            )}
+                            {selected.size > 0 && (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={() => setDeleteOpen(true)}
+                                    sx={{
+                                        borderRadius: '10px', textTransform: 'none', fontWeight: 700,
+                                        fontSize: '0.84rem',
+                                        background: 'linear-gradient(135deg,#7b1113,#a01518)',
+                                        '&:hover': { background: 'linear-gradient(135deg,#a01518,#c62828)' },
+                                        boxShadow: '0 2px 10px rgba(123,17,19,0.35)',
+                                    }}
+                                >
+                                    Delete ({selected.size})
+                                </Button>
+                            )}
+                        </Box>
                     </Box>
 
                     <TableContainer>
                         <Table stickyHeader size="small">
                             <TableHead>
                                 <TableRow>
+                                    {/* Select-all checkbox */}
+                                    <TableCell padding="checkbox" sx={{ ...pt.tableHeadSx, width: 48 }}>
+                                        <Checkbox
+                                            size="small"
+                                            checked={allPageSelected}
+                                            indeterminate={someSelected}
+                                            onChange={toggleSelectAll}
+                                            sx={{ color: '#e8b84b', '&.Mui-checked': { color: '#e8b84b' }, '&.MuiCheckbox-indeterminate': { color: '#e8b84b' } }}
+                                        />
+                                    </TableCell>
                                     {columns.map((col) => (
                                         <TableCell
                                             key={col.id}
@@ -527,6 +667,8 @@ const DataLogs = () => {
                                             </TableSortLabel>
                                         </TableCell>
                                     ))}
+                                    {/* Row action column */}
+                                    <TableCell sx={{ ...pt.tableHeadSx, width: 64 }} />
                                 </TableRow>
                             </TableHead>
 
@@ -555,11 +697,29 @@ const DataLogs = () => {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    paginated.map((row, idx) => (
+                                    paginated.map((row, idx) => {
+                                        const sel = isSelected(row.id);
+                                        return (
                                         <TableRow
                                             key={row.id ?? idx}
-                                            hover sx={pt.tableRowSx}
+                                            hover
+                                            selected={sel}
+                                            sx={{
+                                                ...pt.tableRowSx,
+                                                ...(sel && {
+                                                    bgcolor: darkMode ? 'rgba(232,184,75,0.08) !important' : 'rgba(160,21,24,0.05) !important',
+                                                }),
+                                            }}
                                         >
+                                            {/* Row checkbox */}
+                                            <TableCell padding="checkbox">
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={sel}
+                                                    onChange={() => toggleSelect(row.id)}
+                                                    sx={{ color: '#e8b84b', '&.Mui-checked': { color: '#e8b84b' } }}
+                                                />
+                                            </TableCell>
                                             <TableCell sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap', color: pt.tableCellColor }}>
                                                 {row.date ?? '—'}
                                             </TableCell>
@@ -590,20 +750,27 @@ const DataLogs = () => {
                                             <TableCell sx={{ fontSize: '0.875rem', color: pt.tableNoteColor, maxWidth: 220 }}>
                                                 {row.notes ? (
                                                     <Tooltip title={row.notes} placement="top-start">
-                                                        <Box sx={{
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            whiteSpace: 'nowrap',
-                                                            maxWidth: 240,
-                                                            cursor: 'default',
-                                                        }}>
+                                                        <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240, cursor: 'default' }}>
                                                             {row.notes}
                                                         </Box>
                                                     </Tooltip>
                                                 ) : '—'}
                                             </TableCell>
+                                            {/* Quick edit icon */}
+                                            <TableCell align="center" sx={{ p: 0.5 }}>
+                                                <Tooltip title="Edit this record">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => { e.stopPropagation(); openEdit(row); }}
+                                                        sx={{ color: darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)', '&:hover': { color: '#e8b84b', bgcolor: 'rgba(232,184,75,0.1)' } }}
+                                                    >
+                                                        <EditIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </TableCell>
                                         </TableRow>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </TableBody>
                         </Table>
@@ -621,6 +788,200 @@ const DataLogs = () => {
                     />
                 </Paper>
             </Box>
+
+            {/* ════════════════════════════════════════════════════
+                 EDIT MODAL
+            ════════════════════════════════════════════════════ */}
+            <Dialog
+                open={editOpen}
+                onClose={() => !editSaving && setEditOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '24px',
+                        background: darkMode ? '#1a1a2e' : '#fff',
+                        border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(123,17,19,0.1)',
+                        boxShadow: '0 32px 80px rgba(0,0,0,0.28)',
+                        overflow: 'hidden',
+                    },
+                }}
+            >
+                {/* Accent bar */}
+                <Box sx={{ height: 5, background: 'linear-gradient(90deg,#e8b84b,#7b1113)' }} />
+
+                <DialogTitle sx={{ pt: 3, pb: 1, px: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Box sx={{ width: 40, height: 40, borderRadius: '12px', background: 'linear-gradient(135deg,#7b1113,#a01518)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <EditIcon sx={{ color: '#e8b84b', fontSize: 20 }} />
+                            </Box>
+                            <Box>
+                                <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: darkMode ? 'white' : '#1a1a1a' }}>Edit Record</Typography>
+                                <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', mt: 0.1 }}>ID: {editRow?.id}</Typography>
+                            </Box>
+                        </Box>
+                        <IconButton size="small" onClick={() => setEditOpen(false)} disabled={editSaving}
+                            sx={{ color: 'text.secondary', '&:hover': { color: '#a01518' } }}>
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                </DialogTitle>
+
+                <DialogContent sx={{ px: 3, pt: 2, pb: 1 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 0.5 }}>
+
+                        {/* Date */}
+                        <TextField
+                            label="Collection Date"
+                            type="date"
+                            fullWidth size="small"
+                            value={editForm.date ?? ''}
+                            onChange={e => setEditForm(f => ({ ...f, date: e.target.value }))}
+                            InputLabelProps={{ shrink: true }}
+                            sx={pt.inputSx}
+                        />
+
+                        {/* Office */}
+                        <Autocomplete
+                            options={offices.map(o => o.name)}
+                            value={editForm.officeName ?? ''}
+                            onChange={(_, v) => setEditForm(f => ({ ...f, officeName: v ?? '' }))}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Office" size="small" fullWidth sx={pt.inputSx} />
+                            )}
+                            freeSolo
+                        />
+
+                        {/* Waste Category */}
+                        <FormControl fullWidth size="small" sx={pt.inputSx}>
+                            <InputLabel>Waste Category</InputLabel>
+                            <Select
+                                value={editForm.category ?? ''}
+                                label="Waste Category"
+                                onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
+                                sx={{ borderRadius: '10px' }}
+                            >
+                                {wasteCategories.map(c => (
+                                    <MenuItem key={c.name} value={c.name}>
+                                        <Box sx={{ display:'flex', alignItems:'center', gap:1.2 }}>
+                                            <Box sx={{ width:10, height:10, borderRadius:'50%', bgcolor: c.color }} />
+                                            {c.name}
+                                        </Box>
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        {/* Weight */}
+                        <TextField
+                            label="Weight (kg)"
+                            type="number"
+                            fullWidth size="small"
+                            value={editForm.weight ?? ''}
+                            onChange={e => setEditForm(f => ({ ...f, weight: e.target.value }))}
+                            inputProps={{ min: 0, step: 0.1 }}
+                            sx={pt.inputSx}
+                        />
+
+                        {/* Notes */}
+                        <TextField
+                            label="Notes"
+                            fullWidth size="small" multiline rows={3}
+                            value={editForm.notes ?? ''}
+                            onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
+                            sx={pt.inputSx}
+                        />
+                    </Box>
+                </DialogContent>
+
+                <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1.5 }}>
+                    <Button
+                        onClick={() => setEditOpen(false)}
+                        disabled={editSaving}
+                        sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, color: 'text.secondary', px: 2.5 }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={editSaving ? <CircularProgress size={16} sx={{ color: '#e8b84b' }} /> : <SaveIcon />}
+                        onClick={handleEditSave}
+                        disabled={editSaving}
+                        sx={{
+                            borderRadius: '10px', textTransform: 'none', fontWeight: 700, px: 3,
+                            background: 'linear-gradient(135deg,#7b1113,#a01518)',
+                            color: '#e8b84b',
+                            '&:hover': { background: 'linear-gradient(135deg,#a01518,#c62828)' },
+                            boxShadow: '0 4px 14px rgba(123,17,19,0.35)',
+                        }}
+                    >
+                        {editSaving ? 'Saving…' : 'Save Changes'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* ════════════════════════════════════════════════════
+                 DELETE CONFIRM DIALOG
+            ════════════════════════════════════════════════════ */}
+            <Dialog
+                open={deleteOpen}
+                onClose={() => !deleteWorking && setDeleteOpen(false)}
+                maxWidth="xs"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '20px',
+                        background: darkMode ? '#1a1a2e' : '#fff',
+                        border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(123,17,19,0.1)',
+                        boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+                        overflow: 'hidden',
+                    },
+                }}
+            >
+                <Box sx={{ height: 5, background: 'linear-gradient(90deg,#a01518,#e8b84b)' }} />
+                <DialogTitle sx={{ pt: 3, pb: 1, px: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: 'rgba(160,21,24,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <WarnIcon sx={{ color: '#a01518', fontSize: 26 }} />
+                        </Box>
+                        <Box>
+                            <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: darkMode ? 'white' : '#1a1a1a' }}>
+                                Delete {selected.size} Record{selected.size !== 1 ? 's' : ''}?
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', mt: 0.1 }}>This action cannot be undone.</Typography>
+                        </Box>
+                    </Box>
+                </DialogTitle>
+                <DialogContent sx={{ px: 3 }}>
+                    <Typography sx={{ fontSize: '0.88rem', color: darkMode ? 'rgba(255,255,255,0.65)' : '#555' }}>
+                        You are about to permanently delete <strong>{selected.size}</strong> selected record{selected.size !== 1 ? 's' : ''} from the database.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3, gap: 1.5 }}>
+                    <Button
+                        onClick={() => setDeleteOpen(false)}
+                        disabled={deleteWorking}
+                        sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, color: 'text.secondary', px: 2.5 }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={deleteWorking ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <DeleteIcon />}
+                        onClick={handleDeleteConfirm}
+                        disabled={deleteWorking}
+                        sx={{
+                            borderRadius: '10px', textTransform: 'none', fontWeight: 700, px: 3,
+                            background: 'linear-gradient(135deg,#7b1113,#a01518)',
+                            '&:hover': { background: 'linear-gradient(135deg,#a01518,#c62828)' },
+                            boxShadow: '0 4px 14px rgba(123,17,19,0.35)',
+                        }}
+                    >
+                        {deleteWorking ? 'Deleting…' : 'Yes, Delete'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* ── Export Dialog ── */}
             <Dialog
