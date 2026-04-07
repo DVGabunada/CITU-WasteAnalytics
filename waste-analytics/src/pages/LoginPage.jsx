@@ -35,22 +35,46 @@ const DARK = {
     },
 };
 
+// ─── Student ID auto-formatter (XX-XXXX-XXX) ───────────────────────────────
+const formatStudentId = (raw) => {
+    // Strip non-digits
+    const digits = raw.replace(/\D/g, '').slice(0, 9);
+    if (digits.length <= 2)  return digits;
+    if (digits.length <= 6)  return `${digits.slice(0,2)}-${digits.slice(2)}`;
+    return `${digits.slice(0,2)}-${digits.slice(2,6)}-${digits.slice(6)}`;
+};
+
 // ─── LoginPage ────────────────────────────────────────────────────────────────
 const LoginPage = () => {
     const navigate = useNavigate();
     const { loginAsGuest, adminLogin, adminSignup } = useAuth();
 
-    const [tab, setTab]           = useState(0);
-    const [guestName, setGuestName] = useState('');
+    const [tab, setTab]               = useState(0);
+    // Student fields
+    const [studentEmail, setStudentEmail] = useState('');
+    const [studentId, setStudentId]       = useState('');
+    const [studentError, setStudentError] = useState('');
+    // Admin fields
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPw, setShowPw]     = useState(false);
     const [error, setError]       = useState('');
     const [loading, setLoading]   = useState(false);
 
-    const handleGuestLogin = () => {
-        setError('');
-        loginAsGuest(guestName.trim() || 'Student');
+    const handleStudentLogin = () => {
+        setStudentError('');
+        // Validate institutional email
+        if (!studentEmail.trim()) {
+            setStudentError('Please enter your institutional email.'); return;
+        }
+        if (!studentEmail.trim().toLowerCase().endsWith('@cit.edu')) {
+            setStudentError('Email must be a CIT-U institutional email (@cit.edu).'); return;
+        }
+        // Validate Student ID format XX-XXXX-XXX
+        if (!/^\d{2}-\d{4}-\d{3}$/.test(studentId)) {
+            setStudentError('Student ID must follow the format XX-XXXX-XXX (e.g. 22-1234-567).'); return;
+        }
+        loginAsGuest(studentEmail.trim(), studentId);
         navigate('/5s-system/awareness');
     };
 
@@ -199,26 +223,65 @@ const LoginPage = () => {
                         </Box>
                     </Paper>
 
-                    {/* Guest form */}
+                    {/* Student login form */}
                     {tab === 0 && (
                         <Box>
+                            {studentError && (
+                                <Alert severity="error" sx={{ mb: 1.5, borderRadius: '12px', fontSize: '0.82rem' }}>{studentError}</Alert>
+                            )}
+
+                            {/* Institutional email */}
                             <TextField
-                                fullWidth label="Your Name (Optional)"
-                                value={guestName} onChange={e => setGuestName(e.target.value)}
-                                placeholder="e.g. Juan Dela Cruz"
-                                sx={{ ...DARK.inputSx, mb: 2 }}
-                                InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon /></InputAdornment> }}
-                                onKeyDown={e => e.key === 'Enter' && handleGuestLogin()}
+                                fullWidth
+                                label="Institutional Email"
+                                type="email"
+                                placeholder="e.g. juan.delacruz@cit.edu"
+                                value={studentEmail}
+                                onChange={e => { setStudentEmail(e.target.value); setStudentError(''); }}
+                                onKeyDown={e => e.key === 'Enter' && handleStudentLogin()}
+                                sx={{ ...DARK.inputSx, mb: 1.5 }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <PersonIcon />
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
-                            <Button fullWidth variant="contained" size="large" onClick={handleGuestLogin} sx={{
+
+                            {/* Student ID */}
+                            <TextField
+                                fullWidth
+                                label="Student ID"
+                                placeholder="XX-XXXX-XXX"
+                                value={studentId}
+                                onChange={e => { setStudentId(formatStudentId(e.target.value)); setStudentError(''); }}
+                                onKeyDown={e => e.key === 'Enter' && handleStudentLogin()}
+                                inputProps={{ maxLength: 11 }}
+                                sx={{ ...DARK.inputSx, mb: 2 }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <LockIcon />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                helperText={
+                                    <Typography component="span" sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
+                                        Format: XX-XXXX-XXX (e.g. 22-1234-567)
+                                    </Typography>
+                                }
+                            />
+
+                            <Button fullWidth variant="contained" size="large" onClick={handleStudentLogin} sx={{
                                 background: 'linear-gradient(135deg, #e8b84b 0%, #c9a84c 100%)',
                                 color: '#3e0a0b', fontWeight: 800, fontSize: '1rem',
                                 borderRadius: '14px', py: 1.4,
                                 boxShadow: '0 8px 24px rgba(232,184,75,0.35)',
                                 '&:hover': { background: 'linear-gradient(135deg, #c9a84c 0%, #a88a3a 100%)', transform: 'translateY(-2px)', boxShadow: '0 12px 32px rgba(232,184,75,0.45)' },
-                                transition: 'all 0.3s ease', textTransform: 'none',
+                                transition: 'all 0.3s ease', textTransform: 'none', mt: 0.5,
                             }}>
-                                Enter as Guest 🎓
+                                Student Login 🎓
                             </Button>
                         </Box>
                     )}
