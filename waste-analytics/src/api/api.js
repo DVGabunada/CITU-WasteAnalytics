@@ -8,11 +8,11 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api
  * Register a new user.
  * POST /api/v3/users/add
  */
-export async function createUser(username, password) {
+export async function createUser(username, password, admin = false) {
     return fetch(`${BASE_URL}/users/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, admin: false }),
+        body: JSON.stringify({ username, password, admin }),
     });
 }
 
@@ -76,3 +76,35 @@ export async function deleteEntry(id) {
     const res = await fetch(`${BASE_URL}/entries/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error(`Failed to delete entry ${id}`);
 }
+
+// ─── Survey ───────────────────────────────────────────────────────────────────
+
+/**
+ * Submit a survey response.
+ * POST /api/v3/survey/add
+ * @param {{ date, q1, q2, q3, q4, q5 }} survey
+ * Field mapping:
+ *   q1 = role        q2 = segregationFreq  q3 = awarenessLevel (string)
+ *   q4 = challenge   q5 = suggestion
+ */
+export async function submitSurvey(survey) {
+    const res = await fetch(`${BASE_URL}/survey/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(survey),
+    });
+    if (!res.ok) throw new Error('Failed to submit survey');
+    return res.text(); // backend returns "Survey Logged with ID: <id>"
+}
+
+/**
+ * Fetch aggregated survey totals.
+ * GET /api/v3/survey/totalResult
+ * @returns {Promise<Map<string, Object>>}
+ */
+export async function getSurveyTotals() {
+    const res = await fetch(`${BASE_URL}/survey/totalResult`);
+    if (!res.ok) throw new Error('Failed to fetch survey results');
+    return res.json();
+}
+

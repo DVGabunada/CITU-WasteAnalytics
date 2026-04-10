@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     // ── Admin signup ──────────────────────────────────────────────────────────
-    const adminSignup = async (username, password) => {
+    const adminSignup = async (username, password, isAdmin = false) => {
         try {
             // Check for duplicate username
             const existing = await getUserByUsername(username);
@@ -45,11 +45,10 @@ export const AuthProvider = ({ children }) => {
             }
 
             // Hash the password before sending to the backend.
-            // The plaintext password never leaves the browser.
             const hashedPassword = await hashPassword(password);
 
-            // Register with backend (stores the SHA-256 hash, never the plaintext)
-            const res = await createUser(username, hashedPassword);
+            // Register with backend — admin flag is set by the caller
+            const res = await createUser(username, hashedPassword, isAdmin);
             if (!res.ok) {
                 return { ok: false, error: 'Failed to create account. Please try again.' };
             }

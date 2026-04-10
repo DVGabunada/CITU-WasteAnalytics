@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 import Dashboard from './pages/Dashboard';
 import Monitoring from './pages/Monitoring';
 import Insights from './pages/Insights';
@@ -19,6 +20,9 @@ function App() {
       {/* Public pages */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+
+      {/* Admin-only login portal — access via /admin */}
+      <Route path="/admin" element={<AdminLoginPage />} />
 
       {/* Protected 5S+ system — requires login */}
       <Route

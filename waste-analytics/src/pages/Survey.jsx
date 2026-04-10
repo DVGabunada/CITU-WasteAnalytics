@@ -1,60 +1,121 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box, Typography, Paper, Button, Grid, TextField,
     RadioGroup, FormControlLabel, Radio, FormControl,
     FormLabel, Divider, Chip, Rating, Tab, Tabs,
-    Card, CardContent, LinearProgress, Snackbar, Alert,
+    LinearProgress, Snackbar, Alert, CircularProgress,
 } from '@mui/material';
 import {
     Send as SendIcon,
     CheckCircle as CheckIcon,
     QuestionAnswer as SurveyIcon,
     BarChart as ResultsIcon,
-    EmojiObjects as TipIcon,
+    Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { usePageTheme } from '../hooks/usePageTheme';
 import { useAuth } from '../context/AuthContext';
 import MascotBubble from '../components/MascotBubble';
-import { addSurveyResponse, getSurveyResponses } from '../data/surveyStore';
+import { submitSurvey, getSurveyTotals } from '../api/api';
 
-// ─── Question definitions ─────────────────────────────────────────────────
+// ─── Question definitions ─────────────────────────────────────────────────────
 
 const SEGREGATION_OPTIONS = [
-    { value: 'always', label: 'Always' },
-    { value: 'often', label: 'Often' },
+    { value: 'always',    label: 'Always' },
+    { value: 'often',     label: 'Often' },
     { value: 'sometimes', label: 'Sometimes' },
-    { value: 'rarely', label: 'Rarely' },
-    { value: 'never', label: 'Never' },
+    { value: 'rarely',    label: 'Rarely' },
+    { value: 'never',     label: 'Never' },
 ];
 
 const CHALLENGE_OPTIONS = [
-    { value: 'bins', label: 'Not enough labeled bins' },
-    { value: 'knowledge', label: 'Unsure what goes where' },
-    { value: 'time', label: 'No time to segregate' },
-    { value: 'habit', label: 'Old habits / not a priority' },
+    { value: 'bins',        label: 'Not enough labeled bins' },
+    { value: 'knowledge',   label: 'Unsure what goes where' },
+    { value: 'time',        label: 'No time to segregate' },
+    { value: 'habit',       label: 'Old habits / not a priority' },
     { value: 'enforcement', label: 'Lack of policy enforcement' },
-    { value: 'other', label: 'Other' },
+    { value: 'other',       label: 'Other' },
 ];
 
 const ROLE_OPTIONS = [
-    { value: 'student', label: 'Student' },
-    { value: 'faculty', label: 'Faculty / Instructor' },
-    { value: 'staff', label: 'Administrative Staff' },
+    { value: 'student',     label: 'Student' },
+    { value: 'faculty',     label: 'Faculty / Instructor' },
+    { value: 'staff',       label: 'Administrative Staff' },
     { value: 'maintenance', label: 'Maintenance / Custodial' },
-    { value: 'prefer_not', label: 'Prefer not to say' },
+    { value: 'prefer_not',  label: 'Prefer not to say' },
 ];
 
-// ─── Helper ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const countBy = (arr, key, val) => arr.filter(r => r[key] === val).length;
-const pct = (n, total) => total === 0 ? 0 : Math.round((n / total) * 100);
+/**
+ * Case-insensitive key lookup in an object.
+ * The backend stores answer values with inconsistent casing
+ * (e.g. "Always" vs "always", "No time to segregate" vs the code "time").
+ * We match either by the exact option value OR by the option label, both case-insensitively.
+ */
+const ciGet = (obj, ...candidates) => {
+    if (!obj || typeof obj !== 'object') return 0;
+    const lower = Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v])
+    );
+    for (const c of candidates) {
+        const found = lower[c.toLowerCase()];
+        if (found !== undefined) return found;
+    }
+    return 0;
+};
 
-// ─── ResultsTab ───────────────────────────────────────────────────────────
+/**
+ * Compute average awareness from the q3 count map.
+ * Backend stores { "2": 1, "3": 2, "4": 1 } — sum weighted, divide by total.
+ */
+const computeAvgAwareness = (q3Map) => {
+    if (!q3Map || typeof q3Map !== 'object') return '0.0';
+    let sum = 0, cnt = 0;
+    for (const [k, v] of Object.entries(q3Map)) {
+        const num = Number(k);
+        if (!isNaN(num)) { sum += num * v; cnt += v; }
+    }
+    return cnt === 0 ? '0.0' : (sum / cnt).toFixed(1);
+};
 
-const ResultsTab = ({ responses }) => {
-    const total = responses.length;
+const pct = (n, total) => (total === 0 ? 0 : Math.round((n / total) * 100));
 
-    if (total === 0) {
+// ─── ResultsTab ───────────────────────────────────────────────────────────────
+
+const ResultsTab = ({ totals, loading, error, onRefresh }) => {
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 10, gap: 2 }}>
+                <CircularProgress sx={{ color: '#7b1113' }} />
+                <Typography color="text.secondary">Loading results from server…</Typography>
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Typography sx={{ fontSize: '3rem', mb: 2 }}>⚠️</Typography>
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                    Could not load results
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 3, fontSize: '0.9rem' }}>
+                    {error}
+                </Typography>
+                <Button
+                    variant="outlined" startIcon={<RefreshIcon />} onClick={onRefresh}
+                    sx={{ borderRadius: '12px', borderColor: '#7b1113', color: '#7b1113' }}
+                >
+                    Retry
+                </Button>
+            </Box>
+        );
+    }
+
+    const total = totals?.totalResponses ?? 0;
+    const counts = totals?.counts || {};
+
+    if (!totals || total === 0) {
         return (
             <Box sx={{ textAlign: 'center', py: 10 }}>
                 <Typography sx={{ fontSize: '3rem', mb: 2 }}>📭</Typography>
@@ -64,16 +125,28 @@ const ResultsTab = ({ responses }) => {
         );
     }
 
-    const avgAwareness = (responses.reduce((acc, r) => acc + (Number(r.awarenessLevel) || 0), 0) / total).toFixed(1);
+    // Q2 — segregation frequency (keys may be mixed-case, match by value OR label)
+    const q2 = counts.q2 || {};
+    // Q3 — awareness average computed from count map { "2": 1, "3": 2, "4": 1 }
+    const q3 = counts.q3 || {};
+    const avgAwareness = computeAvgAwareness(q3);
+    // Q4 — challenge counts (keys are full label strings from the frontend)
+    const q4 = counts.q4 || {};
+    // Suggestions array
+    const suggestions = totals?.q5Responses || [];
+
+    // Always-segregate: try value 'always' and label 'Always'
+    const alwaysCount = ciGet(q2, 'always', 'Always');
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+
             {/* Summary KPIs */}
             <Grid container spacing={3}>
                 {[
-                    { label: 'Total Responses', value: total, emoji: '📋', color: '#7b1113' },
-                    { label: 'Avg. Awareness Score', value: `${avgAwareness}/5`, emoji: '⭐', color: '#f57f17' },
-                    { label: 'Always Segregate', value: `${pct(countBy(responses, 'segregationFreq', 'always'), total)}%`, emoji: '♻️', color: '#0288d1' },
+                    { label: 'Total Responses',  value: total,                           emoji: '📋', color: '#7b1113' },
+                    { label: 'Avg. Awareness',   value: `${avgAwareness}/5`,             emoji: '⭐', color: '#f57f17' },
+                    { label: 'Always Segregate', value: `${pct(alwaysCount, total)}%`,   emoji: '♻️', color: '#0288d1' },
                 ].map(kpi => (
                     <Grid key={kpi.label} size={{ xs: 12, sm: 4 }}>
                         <Paper sx={{
@@ -89,13 +162,14 @@ const ResultsTab = ({ responses }) => {
                 ))}
             </Grid>
 
-            {/* Segregation breakdown */}
+            {/* Q2: Segregation frequency breakdown */}
             <Paper sx={{ p: 3, borderRadius: '20px', boxShadow: '0 6px 24px rgba(46,125,50,0.1)' }}>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#7b1113', mb: 3 }}>
                     ♻️ Segregation Frequency Breakdown
                 </Typography>
                 {SEGREGATION_OPTIONS.map(opt => {
-                    const n = countBy(responses, 'segregationFreq', opt.value);
+                    // Match by short value ('always') AND display label ('Always')
+                    const n = ciGet(q2, opt.value, opt.label);
                     const p = pct(n, total);
                     return (
                         <Box key={opt.value} sx={{ mb: 2 }}>
@@ -104,8 +178,7 @@ const ResultsTab = ({ responses }) => {
                                 <Typography variant="body2" color="text.secondary">{n} ({p}%)</Typography>
                             </Box>
                             <LinearProgress
-                                variant="determinate"
-                                value={p}
+                                variant="determinate" value={p}
                                 sx={{
                                     height: 10, borderRadius: 5,
                                     bgcolor: 'rgba(46,125,50,0.1)',
@@ -117,13 +190,14 @@ const ResultsTab = ({ responses }) => {
                 })}
             </Paper>
 
-            {/* Top challenges */}
+            {/* Q4: Top challenges — backend stores full label strings as keys */}
             <Paper sx={{ p: 3, borderRadius: '20px', boxShadow: '0 6px 24px rgba(46,125,50,0.1)' }}>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#7b1113', mb: 3 }}>
                     ⚠️ Top Reported Challenges
                 </Typography>
                 {CHALLENGE_OPTIONS.map(opt => {
-                    const n = responses.filter(r => r.challenge === opt.value).length;
+                    // Match by short value ('bins') AND full label ('Not enough labeled bins')
+                    const n = ciGet(q4, opt.value, opt.label);
                     const p = pct(n, total);
                     return (
                         <Box key={opt.value} sx={{ mb: 2 }}>
@@ -132,8 +206,7 @@ const ResultsTab = ({ responses }) => {
                                 <Typography variant="body2" color="text.secondary">{n} ({p}%)</Typography>
                             </Box>
                             <LinearProgress
-                                variant="determinate"
-                                value={p}
+                                variant="determinate" value={p}
                                 sx={{
                                     height: 10, borderRadius: 5,
                                     bgcolor: 'rgba(2,136,209,0.1)',
@@ -145,22 +218,19 @@ const ResultsTab = ({ responses }) => {
                 })}
             </Paper>
 
-            {/* Recent suggestions */}
-            {responses.some(r => r.suggestion) && (
+            {/* Q5: Recent suggestions from backend */}
+            {suggestions.length > 0 && (
                 <Paper sx={{ p: 3, borderRadius: '20px', boxShadow: '0 6px 24px rgba(46,125,50,0.1)' }}>
                     <Typography variant="h6" sx={{ fontWeight: 800, color: '#7b1113', mb: 2 }}>
                         💡 Recent Suggestions
                     </Typography>
-                    {responses.filter(r => r.suggestion).slice(-5).reverse().map((r, i) => (
+                    {suggestions.slice(-5).reverse().map((s, i) => (
                         <Box key={i} sx={{
                             p: 2, borderRadius: '12px', bgcolor: '#fce4ec',
                             border: '1px solid #f8bbd0', mb: 1.5,
                         }}>
                             <Typography variant="body2" sx={{ color: '#7b1113', fontStyle: 'italic' }}>
-                                "{r.suggestion}"
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                                {r.role || 'Anonymous'} · {new Date(r.submittedAt).toLocaleDateString()}
+                                "{s.answer}"
                             </Typography>
                         </Box>
                     ))}
@@ -170,50 +240,100 @@ const ResultsTab = ({ responses }) => {
     );
 };
 
-// ─── Main Component ────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const Survey = () => {
-    const [tab, setTab] = useState(0);
-    const [step, setStep] = useState('intro'); // 'intro' | 'form' | 'done'
-    const [responses, setResponses] = useState([]);
-    const [snackbar, setSnackbar] = useState(false);
+    const [tab, setTab]       = useState(0);
+    const [step, setStep]     = useState('intro'); // 'intro' | 'form' | 'done'
+    const [submitting, setSubmitting] = useState(false);
+
+    // Results state
+    const [totals, setTotals]         = useState(null);
+    const [resultsLoading, setResultsLoading] = useState(false);
+    const [resultsError, setResultsError]     = useState('');
+    const [totalCount, setTotalCount] = useState(0);
+
+    // Snackbars
+    const [snackbar, setSnackbar]   = useState({ open: false, msg: '', sev: 'success' });
+
     const pt = usePageTheme();
     const { darkMode } = pt;
     const { isGuest } = useAuth();
 
     const [form, setForm] = useState({
+        role:            '',
         segregationFreq: '',
-        awarenessLevel: 3,
-        challenge: '',
-        suggestion: '',
-        role: '',
+        awarenessLevel:  3,
+        challenge:       '',
+        suggestion:      '',
     });
 
-    useEffect(() => {
-        setResponses(getSurveyResponses());
+    // ── Fetch results (called on mount and when Results tab opens) ─────────────
+    const fetchResults = useCallback(async () => {
+        setResultsLoading(true);
+        setResultsError('');
+        try {
+            const data = await getSurveyTotals();
+            setTotals(data);
+            setTotalCount(data?.totalResponses ?? 0);
+        } catch (err) {
+            setResultsError(err.message || 'Network error. Is the backend running?');
+        } finally {
+            setResultsLoading(false);
+        }
     }, []);
 
-    const handleChange = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
+    // Fetch total count on mount (for the chip in the header)
+    useEffect(() => {
+        fetchResults();
+    }, [fetchResults]);
 
-    const handleSubmit = (e) => {
+    // Re-fetch when switching to Results tab
+    const handleTabChange = (_, v) => {
+        setTab(v);
+        if (v === 1) fetchResults();
+    };
+
+    const handleChange = (field) => (e) =>
+        setForm(f => ({ ...f, [field]: e.target.value }));
+
+    // ── Submit ─────────────────────────────────────────────────────────────────
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.segregationFreq || !form.challenge) return;
-        const updated = addSurveyResponse(form);
-        setResponses(updated);
-        setStep('done');
-        setSnackbar(true);
+
+        setSubmitting(true);
+        try {
+            const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+            await submitSurvey({
+                date: today,
+                q1:   form.role            || '',
+                q2:   form.segregationFreq || '',
+                q3:   String(form.awarenessLevel),
+                q4:   form.challenge        || '',
+                q5:   form.suggestion       || '',
+            });
+
+            // Refresh totals in background so the chip count updates
+            fetchResults();
+
+            setStep('done');
+            setSnackbar({ open: true, msg: 'Survey submitted successfully! Thank you 🌱', sev: 'success' });
+        } catch (err) {
+            setSnackbar({ open: true, msg: `Submission failed: ${err.message}`, sev: 'error' });
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const mascotMessages = {
         intro: "Help me improve waste management at CIT-U! This quick survey takes less than 2 minutes. 🌱",
-        form: "There are no wrong answers — just be honest! Your feedback drives real change. 💪",
-        done: "Thank you so much! Your response helps us build a greener campus. 🎉",
+        form:  "There are no wrong answers — just be honest! Your feedback drives real change. 💪",
+        done:  "Thank you so much! Your response helps us build a greener campus. 🎉",
     };
 
     return (
-        <Box sx={{
-            p: { xs: 2, sm: 3, md: 4 }, background: pt.pageBg, minHeight: '100vh', position: 'relative',
-        }}>
+        <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, background: pt.pageBg, minHeight: '100vh', position: 'relative' }}>
             {/* Floating mascot */}
             <MascotBubble message={mascotMessages[step]} variant="corner" size={100} />
 
@@ -222,19 +342,15 @@ const Survey = () => {
                 {/* Header */}
                 <Box sx={{ mb: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-
                         <Box>
                             <Typography variant="h2" sx={{
                                 fontWeight: 900, fontSize: { xs: '2rem', md: '3rem' },
                                 background: darkMode
                                     ? 'linear-gradient(135deg, #ffffff 0%, #ce93d8 50%, #ab47bc 100%)'
                                     : 'linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #ab47bc 100%)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                                 letterSpacing: '-1px',
-                            }}
-                            >
+                            }}>
                                 Waste Reduction Survey
                             </Typography>
                             <Typography variant="body1" sx={{ color: darkMode ? 'rgba(255,255,255,0.55)' : '#6a1b9a', fontWeight: 500, mt: 0.5 }}>
@@ -244,7 +360,7 @@ const Survey = () => {
                     </Box>
                     <Chip
                         icon={<SurveyIcon />}
-                        label={`${responses.length} response${responses.length !== 1 ? 's' : ''} collected`}
+                        label={`${totalCount} response${totalCount !== 1 ? 's' : ''} collected`}
                         sx={{ mt: 2, bgcolor: pt.chipBg, color: pt.chipColor, fontWeight: 600, border: pt.chipBorder, boxShadow: pt.chipShadow, backdropFilter: pt.chipBackdropFilter, '& .MuiChip-icon': { color: pt.chipIconColor } }}
                     />
                 </Box>
@@ -253,7 +369,7 @@ const Survey = () => {
                 <Paper sx={{ borderRadius: '20px', overflow: 'hidden', mb: 3, boxShadow: pt.paperShadow, background: pt.paperBg, backdropFilter: pt.paperBackdropFilter, border: pt.paperBorder }}>
                     <Tabs
                         value={tab}
-                        onChange={(_, v) => setTab(v)}
+                        onChange={handleTabChange}
                         sx={{
                             bgcolor: 'transparent',
                             '& .MuiTab-root': { fontWeight: 700, fontSize: '0.95rem', color: pt.tabColor },
@@ -286,8 +402,7 @@ const Survey = () => {
                                 },
                             }}>
                                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, alignItems: 'center' }}>
-                                    <Box
-                                        component="img" src="/mascot think.png" alt="Eco"
+                                    <Box component="img" src="/mascot think.png" alt="Eco"
                                         sx={{ width: 240, height: 240, objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(67,160,71,0.3))' }}
                                     />
                                     <Box sx={{ flex: 1 }}>
@@ -311,8 +426,7 @@ const Survey = () => {
                                             ))}
                                         </Box>
                                         <Button
-                                            variant="contained" size="large"
-                                            endIcon={<SendIcon />}
+                                            variant="contained" size="large" endIcon={<SendIcon />}
                                             onClick={() => setStep('form')}
                                             sx={{
                                                 background: 'linear-gradient(135deg, #7b1fa2 0%, #4a148c 100%)',
@@ -335,11 +449,8 @@ const Survey = () => {
                                 component="form" onSubmit={handleSubmit}
                                 sx={{
                                     p: { xs: 3, md: 5 }, borderRadius: '24px',
-                                    boxShadow: pt.paperShadow,
-                                    position: 'relative', overflow: 'hidden',
-                                    background: pt.paperBg,
-                                    backdropFilter: pt.paperBackdropFilter,
-                                    border: pt.paperBorder,
+                                    boxShadow: pt.paperShadow, position: 'relative', overflow: 'hidden',
+                                    background: pt.paperBg, backdropFilter: pt.paperBackdropFilter, border: pt.paperBorder,
                                     '&::before': {
                                         content: '""', position: 'absolute', top: 0, left: 0, right: 0,
                                         height: darkMode ? '3px' : '4px', background: 'linear-gradient(90deg, #ab47bc 0%, #7b1fa2 100%)',
@@ -429,16 +540,12 @@ const Survey = () => {
                                             variant="outlined"
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 3,
-                                                    color: pt.textFieldColor,
+                                                    borderRadius: 3, color: pt.textFieldColor,
                                                     '& fieldset': { borderColor: pt.textFieldBorderColor },
                                                     '&:hover fieldset': { borderColor: pt.textFieldHoverBorderColor },
                                                     '&.Mui-focused fieldset': { borderColor: pt.textFieldFocusedBorderColor },
                                                 },
-                                                '& .MuiInputBase-input::placeholder': {
-                                                    color: pt.textFieldPlaceholderColor,
-                                                    opacity: 1,
-                                                },
+                                                '& .MuiInputBase-input::placeholder': { color: pt.textFieldPlaceholderColor, opacity: 1 },
                                             }}
                                         />
                                     </Box>
@@ -451,7 +558,9 @@ const Survey = () => {
                                             Back
                                         </Button>
                                         <Button
-                                            type="submit" variant="contained" size="large" endIcon={<SendIcon />}
+                                            type="submit" variant="contained" size="large"
+                                            disabled={submitting}
+                                            endIcon={submitting ? <CircularProgress size={18} color="inherit" /> : <SendIcon />}
                                             sx={{
                                                 background: 'linear-gradient(135deg, #7b1fa2 0%, #4a148c 100%)',
                                                 borderRadius: '14px', px: 6, py: 1.5, fontWeight: 700,
@@ -460,7 +569,7 @@ const Survey = () => {
                                                 transition: 'all 0.3s ease',
                                             }}
                                         >
-                                            Submit Survey
+                                            {submitting ? 'Submitting…' : 'Submit Survey'}
                                         </Button>
                                     </Box>
                                 </Box>
@@ -476,8 +585,7 @@ const Survey = () => {
                                 backdropFilter: darkMode ? 'blur(20px)' : 'none',
                                 border: darkMode ? '1px solid rgba(232,184,75,0.2)' : '2px solid #f8bbd0',
                             }}>
-                                <Box
-                                    component="img" src="/mascot think.png" alt="Eco"
+                                <Box component="img" src="/mascot think.png" alt="Eco"
                                     sx={{ width: 260, height: 260, objectFit: 'contain', filter: 'drop-shadow(0 12px 32px rgba(67,160,71,0.3))', mb: 2 }}
                                 />
                                 <CheckIcon sx={{ fontSize: 64, color: darkMode ? '#e8b84b' : '#7b1113', mb: 2 }} />
@@ -489,17 +597,24 @@ const Survey = () => {
                                 </Typography>
                                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
                                     <Button
-                                        variant="outlined" onClick={() => { setStep('intro'); setForm({ segregationFreq: '', awarenessLevel: 3, challenge: '', suggestion: '', role: '' }); }}
+                                        variant="outlined"
+                                        onClick={() => {
+                                            setStep('intro');
+                                            setForm({ role: '', segregationFreq: '', awarenessLevel: 3, challenge: '', suggestion: '' });
+                                        }}
                                         sx={{ borderRadius: '14px', borderColor: '#7b1113', color: '#7b1113', px: 4 }}
                                     >
                                         Submit Another
                                     </Button>
-                                    <Button
-                                        variant="contained" onClick={() => setTab(1)}
-                                        sx={{ borderRadius: '14px', background: 'linear-gradient(135deg, #a01518 0%, #7b1113 100%)', px: 4 }}
-                                    >
-                                        View Results
-                                    </Button>
+                                    {!isGuest && (
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => { setTab(1); fetchResults(); }}
+                                            sx={{ borderRadius: '14px', background: 'linear-gradient(135deg, #a01518 0%, #7b1113 100%)', px: 4 }}
+                                        >
+                                            View Results
+                                        </Button>
+                                    )}
                                 </Box>
                             </Paper>
                         )}
@@ -507,12 +622,24 @@ const Survey = () => {
                 )}
 
                 {/* ── RESULTS TAB ── */}
-                {tab === 1 && <ResultsTab responses={responses} />}
+                {tab === 1 && (
+                    <ResultsTab
+                        totals={totals}
+                        loading={resultsLoading}
+                        error={resultsError}
+                        onRefresh={fetchResults}
+                    />
+                )}
             </Box>
 
-            <Snackbar open={snackbar} autoHideDuration={4000} onClose={() => setSnackbar(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-                <Alert severity="success" sx={{ borderRadius: 2, fontWeight: 600 }}>
-                    Survey submitted successfully! Thank you 🌱
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert severity={snackbar.sev} sx={{ borderRadius: 2, fontWeight: 600 }}>
+                    {snackbar.msg}
                 </Alert>
             </Snackbar>
         </Box>
