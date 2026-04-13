@@ -119,6 +119,7 @@ const WaveBg = ({ opacity = 0.55 }) => (
                     '100%': { transform: 'translateX(-50%)' },
                 },
             }}>
+
             <path d="M0,160 C180,260 360,60 540,160 C720,260 900,60 1080,160 C1260,260 1440,60 1440,160 L1440,320 L0,320 Z"
                 fill="rgba(160,21,24,0.65)" />
         </Box>
@@ -370,7 +371,7 @@ const LandingPage = () => {
                                 </Typography>
                             </Box>
 
-                            <Box component="img" src="/citmascot.png" alt="Eco Mascot" sx={{
+                            <Box component="img" src="/citumascot.png" alt="Eco Mascot" sx={{
                                 width: { xs: 280, sm: 360, md: 440 }, height: { xs: 280, sm: 360, md: 440 },
                                 objectFit: 'contain',
                                 filter: 'drop-shadow(0 24px 48px rgba(123,17,19,0.55))',
