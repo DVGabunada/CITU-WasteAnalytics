@@ -31,6 +31,202 @@ const emptyRow = () => ({
     notes: '',
 });
 
+// ── Row Card ──────────────────────────────────────────────────────────────────
+// Defined OUTSIDE DataEntry so React does not treat it as a new component type
+// on every render — which would cause inputs to lose focus after each keystroke.
+
+const RowCard = ({ row, index, darkMode, rows, removeRow, updateRow, fieldSx, selectSx }) => (
+    <Box sx={{
+        borderRadius: '20px',
+        border: darkMode
+            ? '1px solid rgba(255,255,255,0.1)'
+            : '1px solid rgba(123,17,19,0.1)',
+        background: darkMode
+            ? 'rgba(255,255,255,0.03)'
+            : 'rgba(255,255,255,0.7)',
+        backdropFilter: darkMode ? 'blur(12px)' : 'none',
+        overflow: 'hidden',
+        transition: 'all 0.25s ease',
+        '&:hover': {
+            border: darkMode
+                ? '1px solid rgba(232,184,75,0.25)'
+                : '1px solid rgba(123,17,19,0.22)',
+            boxShadow: darkMode
+                ? '0 8px 32px rgba(0,0,0,0.25)'
+                : '0 8px 24px rgba(123,17,19,0.08)',
+        },
+    }}>
+        {/* Row header */}
+        <Box sx={{
+            px: 3, py: 1.5,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: darkMode
+                ? 'rgba(232,184,75,0.08)'
+                : 'rgba(123,17,19,0.04)',
+            borderBottom: darkMode
+                ? '1px solid rgba(255,255,255,0.07)'
+                : '1px solid rgba(123,17,19,0.07)',
+        }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{
+                    width: 28, height: 28, borderRadius: '50%',
+                    bgcolor: darkMode ? 'rgba(232,184,75,0.2)' : 'rgba(123,17,19,0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    <Typography sx={{
+                        fontWeight: 900, fontSize: '0.75rem',
+                        color: darkMode ? '#e8b84b' : '#7b1113',
+                    }}>
+                        {String(index + 1).padStart(2, '0')}
+                    </Typography>
+                </Box>
+                <Typography sx={{
+                    fontWeight: 700, fontSize: '0.85rem',
+                    color: darkMode ? 'rgba(255,255,255,0.75)' : '#7b1113',
+                    letterSpacing: '0.5px',
+                }}>
+                    Entry {index + 1}
+                </Typography>
+            </Box>
+            {rows.length > 1 && (
+                <Tooltip title="Remove this entry">
+                    <IconButton size="small" onClick={() => removeRow(row.id)} sx={{
+                        color: darkMode ? 'rgba(255,120,120,0.7)' : '#b71c1c',
+                        '&:hover': {
+                            bgcolor: darkMode ? 'rgba(255,100,100,0.1)' : 'rgba(183,28,28,0.08)',
+                        },
+                    }}>
+                        <RemoveIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
+        </Box>
+
+        {/* Row fields */}
+        <Box sx={{ p: 3 }}>
+            <Grid container spacing={2.5}>
+                {/* Date */}
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <DatePicker
+                            label="Collection Date"
+                            value={row.date}
+                            onChange={(v) => updateRow(row.id, 'date', v)}
+                            slotProps={{ textField: {
+                                fullWidth: true,
+                                variant: 'outlined',
+                                id: `date-picker-${row.id}`,
+                                inputProps: { id: `date-picker-input-${row.id}` },
+                                sx: { '& .MuiOutlinedInput-root': { borderRadius: 3 } },
+                            } }}
+                        />
+                    </LocalizationProvider>
+                </Grid>
+
+                {/* Office */}
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Autocomplete
+                        options={offices}
+                        getOptionLabel={(o) => `${o.name} (${o.building})`}
+                        value={row.selectedOffice}
+                        onChange={(_, v) => updateRow(row.id, 'selectedOffice', v)}
+                        ListboxProps={{ style: { maxHeight: 300 } }}
+                        renderInput={(params) => (
+                            <TextField {...params} label="Office" required fullWidth variant="outlined" sx={fieldSx} />
+                        )}
+                        PaperComponent={({ children }) => (
+                            <Paper sx={{
+                                borderRadius: 3, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', mt: 1,
+                                ...(darkMode && {
+                                    bgcolor: '#2d1010',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    '& li': { color: 'rgba(255,255,255,0.88)' },
+                                }),
+                            }}>
+                                {children}
+                            </Paper>
+                        )}
+                        renderOption={(props, option) => {
+                            const { key, ...rest } = props;
+                            return (
+                                <li key={key} {...rest} style={{
+                                    fontSize: '1rem', padding: '10px 16px',
+                                    ...(darkMode && { color: 'rgba(255,255,255,0.88)' }),
+                                }}>
+                                    {option.name}
+                                    <span style={{ color: darkMode ? 'rgba(232,184,75,0.7)' : '#888', fontSize: '0.85rem', marginLeft: '8px' }}>
+                                        ({option.building})
+                                    </span>
+                                </li>
+                            );
+                        }}
+                    />
+                </Grid>
+
+                {/* Category */}
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <TextField
+                        select fullWidth label="Waste Category"
+                        value={row.category} required variant="outlined"
+                        onChange={(e) => updateRow(row.id, 'category', e.target.value)}
+                        sx={selectSx}
+                        SelectProps={{ MenuProps: { PaperProps: { sx: {
+                            maxHeight: 300, borderRadius: 3,
+                            ...(darkMode && { bgcolor: '#2d1010', border: '1px solid rgba(255,255,255,0.1)' }),
+                        } } } }}
+                    >
+                        {wasteCategories.map((cat) => (
+                            <MenuItem key={cat.id} value={cat.name} sx={{
+                                py: 1.2, fontSize: '1rem',
+                                ...(darkMode && {
+                                    color: 'rgba(255,255,255,0.9)',
+                                    '&:hover': { bgcolor: 'rgba(232,184,75,0.12)' },
+                                    '&.Mui-selected': { bgcolor: 'rgba(232,184,75,0.18)', color: '#e8b84b' },
+                                }),
+                            }}>
+                                {cat.name}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </Grid>
+
+                {/* Weight */}
+                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                    <TextField
+                        fullWidth label="Weight (kg)" type="number"
+                        inputProps={{ step: '0.01', min: '0' }}
+                        value={row.weight} required variant="outlined"
+                        onChange={(e) => updateRow(row.id, 'weight', e.target.value)}
+                        sx={selectSx}
+                    />
+                </Grid>
+
+                {/* Collected By */}
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <TextField
+                        fullWidth label="Collected By (Optional)"
+                        placeholder="Name of staff / intern"
+                        value={row.collectedBy} variant="outlined"
+                        onChange={(e) => updateRow(row.id, 'collectedBy', e.target.value)}
+                        sx={fieldSx}
+                    />
+                </Grid>
+
+                {/* Notes */}
+                <Grid size={{ xs: 12, md: 8 }}>
+                    <TextField
+                        fullWidth label="Notes (Optional)" multiline rows={2}
+                        value={row.notes} variant="outlined"
+                        placeholder="Special events, cleanup drive, etc."
+                        onChange={(e) => updateRow(row.id, 'notes', e.target.value)}
+                        sx={{ ...fieldSx, '& .MuiOutlinedInput-root': { ...fieldSx?.['& .MuiOutlinedInput-root'], borderRadius: 3 } }}
+                    />
+                </Grid>
+            </Grid>
+        </Box>
+    </Box>
+);
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const DataEntry = () => {
@@ -86,199 +282,6 @@ const DataEntry = () => {
     // ── Shared field sx ───────────────────────────────────────────────────────
     const fieldSx = pt.inputSx;
     const selectSx = pt.selectInputSx;
-
-    // ── Row Card ──────────────────────────────────────────────────────────────
-    const RowCard = ({ row, index }) => (
-        <Box sx={{
-            borderRadius: '20px',
-            border: darkMode
-                ? '1px solid rgba(255,255,255,0.1)'
-                : '1px solid rgba(123,17,19,0.1)',
-            background: darkMode
-                ? 'rgba(255,255,255,0.03)'
-                : 'rgba(255,255,255,0.7)',
-            backdropFilter: darkMode ? 'blur(12px)' : 'none',
-            overflow: 'hidden',
-            transition: 'all 0.25s ease',
-            '&:hover': {
-                border: darkMode
-                    ? '1px solid rgba(232,184,75,0.25)'
-                    : '1px solid rgba(123,17,19,0.22)',
-                boxShadow: darkMode
-                    ? '0 8px 32px rgba(0,0,0,0.25)'
-                    : '0 8px 24px rgba(123,17,19,0.08)',
-            },
-        }}>
-            {/* Row header */}
-            <Box sx={{
-                px: 3, py: 1.5,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: darkMode
-                    ? 'rgba(232,184,75,0.08)'
-                    : 'rgba(123,17,19,0.04)',
-                borderBottom: darkMode
-                    ? '1px solid rgba(255,255,255,0.07)'
-                    : '1px solid rgba(123,17,19,0.07)',
-            }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        bgcolor: darkMode ? 'rgba(232,184,75,0.2)' : 'rgba(123,17,19,0.1)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                        <Typography sx={{
-                            fontWeight: 900, fontSize: '0.75rem',
-                            color: darkMode ? '#e8b84b' : '#7b1113',
-                        }}>
-                            {String(index + 1).padStart(2, '0')}
-                        </Typography>
-                    </Box>
-                    <Typography sx={{
-                        fontWeight: 700, fontSize: '0.85rem',
-                        color: darkMode ? 'rgba(255,255,255,0.75)' : '#7b1113',
-                        letterSpacing: '0.5px',
-                    }}>
-                        Entry {index + 1}
-                    </Typography>
-                </Box>
-                {rows.length > 1 && (
-                    <Tooltip title="Remove this entry">
-                        <IconButton size="small" onClick={() => removeRow(row.id)} sx={{
-                            color: darkMode ? 'rgba(255,120,120,0.7)' : '#b71c1c',
-                            '&:hover': {
-                                bgcolor: darkMode ? 'rgba(255,100,100,0.1)' : 'rgba(183,28,28,0.08)',
-                            },
-                        }}>
-                            <RemoveIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-                )}
-            </Box>
-
-            {/* Row fields */}
-            <Box sx={{ p: 3 }}>
-                <Grid container spacing={2.5}>
-                    {/* Date */}
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                            <DatePicker
-                                label="Collection Date"
-                                value={row.date}
-                                onChange={(v) => updateRow(row.id, 'date', v)}
-                                slotProps={{ textField: {
-                                    fullWidth: true,
-                                    variant: 'outlined',
-                                    id: `date-picker-${row.id}`,
-                                    inputProps: { id: `date-picker-input-${row.id}` },
-                                    sx: { '& .MuiOutlinedInput-root': { borderRadius: 3 } },
-                                } }}
-                            />
-                        </LocalizationProvider>
-                    </Grid>
-
-                    {/* Office */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                        <Autocomplete
-                            options={offices}
-                            getOptionLabel={(o) => `${o.name} (${o.building})`}
-                            value={row.selectedOffice}
-                            onChange={(_, v) => updateRow(row.id, 'selectedOffice', v)}
-                            ListboxProps={{ style: { maxHeight: 300 } }}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Office" required fullWidth variant="outlined" sx={fieldSx} />
-                            )}
-                            PaperComponent={({ children }) => (
-                                <Paper sx={{
-                                    borderRadius: 3, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', mt: 1,
-                                    ...(darkMode && {
-                                        bgcolor: '#2d1010',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        '& li': { color: 'rgba(255,255,255,0.88)' },
-                                    }),
-                                }}>
-                                    {children}
-                                </Paper>
-                            )}
-                            renderOption={(props, option) => {
-                                const { key, ...rest } = props;
-                                return (
-                                    <li key={key} {...rest} style={{
-                                        fontSize: '1rem', padding: '10px 16px',
-                                        ...(darkMode && { color: 'rgba(255,255,255,0.88)' }),
-                                    }}>
-                                        {option.name}
-                                        <span style={{ color: darkMode ? 'rgba(232,184,75,0.7)' : '#888', fontSize: '0.85rem', marginLeft: '8px' }}>
-                                            ({option.building})
-                                        </span>
-                                    </li>
-                                );
-                            }}
-                        />
-                    </Grid>
-
-                    {/* Category */}
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <TextField
-                            select fullWidth label="Waste Category"
-                            value={row.category} required variant="outlined"
-                            onChange={(e) => updateRow(row.id, 'category', e.target.value)}
-                            sx={selectSx}
-                            SelectProps={{ MenuProps: { PaperProps: { sx: {
-                                maxHeight: 300, borderRadius: 3,
-                                ...(darkMode && { bgcolor: '#2d1010', border: '1px solid rgba(255,255,255,0.1)' }),
-                            } } } }}
-                        >
-                            {wasteCategories.map((cat) => (
-                                <MenuItem key={cat.id} value={cat.name} sx={{
-                                    py: 1.2, fontSize: '1rem',
-                                    ...(darkMode && {
-                                        color: 'rgba(255,255,255,0.9)',
-                                        '&:hover': { bgcolor: 'rgba(232,184,75,0.12)' },
-                                        '&.Mui-selected': { bgcolor: 'rgba(232,184,75,0.18)', color: '#e8b84b' },
-                                    }),
-                                }}>
-                                    {cat.name}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
-
-                    {/* Weight */}
-                    <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                        <TextField
-                            fullWidth label="Weight (kg)" type="number"
-                            inputProps={{ step: '0.01', min: '0' }}
-                            value={row.weight} required variant="outlined"
-                            onChange={(e) => updateRow(row.id, 'weight', e.target.value)}
-                            sx={selectSx}
-                        />
-                    </Grid>
-
-                    {/* Collected By */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                        <TextField
-                            fullWidth label="Collected By (Optional)"
-                            placeholder="Name of staff / intern"
-                            value={row.collectedBy} variant="outlined"
-                            onChange={(e) => updateRow(row.id, 'collectedBy', e.target.value)}
-                            sx={fieldSx}
-                        />
-                    </Grid>
-
-                    {/* Notes */}
-                    <Grid size={{ xs: 12, md: 8 }}>
-                        <TextField
-                            fullWidth label="Notes (Optional)" multiline rows={2}
-                            value={row.notes} variant="outlined"
-                            placeholder="Special events, cleanup drive, etc."
-                            onChange={(e) => updateRow(row.id, 'notes', e.target.value)}
-                            sx={{ ...fieldSx, '& .MuiOutlinedInput-root': { ...fieldSx?.['& .MuiOutlinedInput-root'], borderRadius: 3 } }}
-                        />
-                    </Grid>
-                </Grid>
-            </Box>
-        </Box>
-    );
 
     return (
         <Box sx={{
@@ -370,7 +373,17 @@ const DataEntry = () => {
                             {/* ── Entry rows ── */}
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                                 {rows.map((row, i) => (
-                                    <RowCard key={row.id} row={row} index={i} />
+                                    <RowCard
+                                        key={row.id}
+                                        row={row}
+                                        index={i}
+                                        darkMode={darkMode}
+                                        rows={rows}
+                                        removeRow={removeRow}
+                                        updateRow={updateRow}
+                                        fieldSx={fieldSx}
+                                        selectSx={selectSx}
+                                    />
                                 ))}
                             </Box>
 
