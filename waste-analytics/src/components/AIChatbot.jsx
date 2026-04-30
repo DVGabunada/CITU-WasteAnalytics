@@ -15,8 +15,13 @@ import { format } from 'date-fns';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const SEALION_KEY = import.meta.env.VITE_SEALION_API_KEY ?? '';
-const SEALION_URL = 'https://api.sea-lion.ai/v1/chat/completions';
+// In dev, the Vite proxy forwards /sealion-api → https://api.sea-lion.ai (avoids CORS).
+// In production (Render static site), we call the API directly.
+const SEALION_URL = import.meta.env.DEV
+    ? '/sealion-api/v1/chat/completions'
+    : 'https://api.sea-lion.ai/v1/chat/completions';
 const MODEL       = 'aisingapore/Gemma-SEA-LION-v4-27B-IT';
+const REQUEST_TIMEOUT_MS = 15_000; // 15 s — avoids frozen UI on slow/blocked requests
 
 // ── Live data context ─────────────────────────────────────────────────────────
 const buildDataContext = () => {
@@ -151,25 +156,39 @@ const AIChatbot = () => {
         try {
             if (!SEALION_KEY) throw new Error('NO_KEY');
 
-            const res = await fetch(SEALION_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${SEALION_KEY}`,
-                },
-                body: JSON.stringify({
-                    model: MODEL,
-                    messages: [
-                        buildSystemMsg(),
-                        ...history.slice(-10),
-                        { role: 'user', content: userText },
-                    ],
-                    temperature: 0.7,
-                    max_completion_tokens: 500,
-                }),
-            });
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+            let res;
+            try {
+                res = await fetch(SEALION_URL, {
+                    method: 'POST',
+                    signal: controller.signal,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SEALION_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: [
+                            buildSystemMsg(),
+                            ...history.slice(-10),
+                            { role: 'user', content: userText },
+                        ],
+                        temperature: 0.7,
+                        max_completion_tokens: 500,
+                    }),
+                });
+            } catch (fetchErr) {
+                if (fetchErr.name === 'AbortError') throw new Error('TIMEOUT');
+                // Network / CORS errors surface as TypeError
+                throw new Error('NETWORK');
+            } finally {
+                clearTimeout(timeout);
+            }
 
             if (!res.ok) {
+                if (res.status === 401) throw new Error('UNAUTHORIZED');
                 if (res.status === 429) throw new Error('RATE_LIMIT');
                 throw new Error(`API error: ${res.status}`);
             }
@@ -187,9 +206,15 @@ const AIChatbot = () => {
         } catch (err) {
             const fallback =
                 err.message === 'NO_KEY'
-                    ? `⚠️ Sea-Lion API key not set.\n\n1. Get a free key at sea-lion.ai\n2. Add VITE_SEALION_API_KEY=your_key to your .env file\n3. Restart the dev server`
+                    ? `⚠️ API key not configured.\n\nIf this is a deployed app, add VITE_SEALION_API_KEY to your Render environment variables and redeploy.`
+                : err.message === 'UNAUTHORIZED'
+                    ? `🔑 API key rejected (401). Please check that VITE_SEALION_API_KEY is valid in your Render environment settings.`
                 : err.message === 'RATE_LIMIT'
                     ? `⏳ Rate limit reached — please wait a moment and try again.`
+                : err.message === 'TIMEOUT'
+                    ? `⌛ Request timed out after 15 seconds. The AI service may be slow — please try again.`
+                : err.message === 'NETWORK'
+                    ? `🌐 Network error — could not reach the AI service. If you're on the deployed site, ensure VITE_SEALION_API_KEY is set in Render's environment variables.`
                     : `Sorry, I couldn't reach the AI. (${err.message})`;
             setMessages(prev => prev.filter(m => m.id !== 'typing').concat({ role: 'bot', content: fallback }));
         } finally {
