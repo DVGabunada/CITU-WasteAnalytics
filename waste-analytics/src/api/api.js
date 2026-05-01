@@ -1,6 +1,13 @@
 // ─── Base URL ─────────────────────────────────────────────────────────────────
-// Override via VITE_API_BASE_URL in .env.local if the backend runs elsewhere.
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v3';
+// Set VITE_API_BASE_URL in:
+//   • Local dev  → waste-analytics/.env.local  (e.g. http://localhost:8080/api/v3)
+//   • Render     → Dashboard → Environment tab  (e.g. https://your-backend.onrender.com/api/v3)
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (() => {
+    if (import.meta.env.PROD) {
+        console.error('[api.js] VITE_API_BASE_URL is not set! Add it to Render environment variables.');
+    }
+    return 'http://localhost:8080/api/v3';
+})();
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
