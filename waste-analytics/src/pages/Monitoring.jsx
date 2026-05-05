@@ -17,7 +17,7 @@ import {
 } from '@mui/icons-material';
 import { usePageTheme } from '../hooks/usePageTheme';
 import { useEntries } from '../hooks/useEntries';
-import { format, sub } from 'date-fns';
+import { format, sub, parseISO } from 'date-fns';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 
