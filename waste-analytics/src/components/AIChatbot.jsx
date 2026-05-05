@@ -10,7 +10,7 @@ import {
     DeleteOutline as ClearIcon,
     AutoAwesome as SparkleIcon,
 } from '@mui/icons-material';
-import { getTransactions } from '../data/dataStore';
+import { getAllEntries } from '../api/api';
 import { format } from 'date-fns';
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -23,10 +23,16 @@ const SEALION_URL = import.meta.env.DEV
 const MODEL       = 'aisingapore/Gemma-SEA-LION-v4-27B-IT';
 const REQUEST_TIMEOUT_MS = 15_000; // 15 s — avoids frozen UI on slow/blocked requests
 
-// ── Live data context ─────────────────────────────────────────────────────────
-const buildDataContext = () => {
+// ── Live data context (fetched from backend) ─────────────────────────────────
+const buildDataContext = async () => {
     try {
-        const rows = getTransactions();
+        const data = await getAllEntries();
+        const rows = data.map(e => ({
+            category:   e.wasteCategory,
+            weight:     e.weight,
+            officeName: e.office,
+            date:       e.date,
+        }));
         if (!rows.length) return 'No waste data recorded yet.';
         const total = rows.reduce((s, r) => s + (r.weight || 0), 0).toFixed(1);
         const catMap = {}, offMap = {};
@@ -40,14 +46,17 @@ const buildDataContext = () => {
         const monthKg   = rows.filter(r => r.date?.startsWith(thisMonth)).reduce((s, r) => s + (r.weight || 0), 0).toFixed(1);
         return `Total: ${total} kg (${rows.length} entries) | This month: ${monthKg} kg | Top category: ${topCat?.[0] ?? 'N/A'} | Top office: ${topOffice?.[0] ?? 'N/A'} | Offices tracked: ${Object.keys(offMap).length}`;
     } catch {
-        return 'No waste data available.';
+        return 'Waste data temporarily unavailable.';
     }
 };
 
-const buildSystemMsg = () => ({
-    role: 'system',
-    content: `You are EcoBot, the AI waste management assistant for CIT-U's 5S+ Waste Monitoring System (Cebu Institute of Technology – University, Philippines). Help with: proper waste disposal, 5S methodology, RA 9003 and RA 6969 compliance, and waste data interpretation. Be concise and friendly. Use bullet points for lists.\n\nLive data summary: ${buildDataContext()}`,
-});
+const buildSystemMsg = async () => {
+    const dataCtx = await buildDataContext();
+    return {
+        role: 'system',
+        content: `You are EcoBot, the AI waste management assistant for CIT-U's 5S+ Waste Monitoring System (Cebu Institute of Technology – University, Philippines). Help with: proper waste disposal, 5S methodology, RA 9003 and RA 6969 compliance, and waste data interpretation. Be concise and friendly. Use bullet points for lists.\n\nLive data summary: ${dataCtx}`,
+    };
+};
 
 // ── Typing dots ───────────────────────────────────────────────────────────────
 const TypingDots = () => (
@@ -171,7 +180,7 @@ const AIChatbot = () => {
                     body: JSON.stringify({
                         model: MODEL,
                         messages: [
-                            buildSystemMsg(),
+                            await buildSystemMsg(),
                             ...history.slice(-10),
                             { role: 'user', content: userText },
                         ],

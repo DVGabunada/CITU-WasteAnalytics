@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
     Box, Typography, Paper, Chip, Divider,
 } from '@mui/material';
@@ -18,7 +18,7 @@ import {
     QueryStats as ForecastIcon,
 } from '@mui/icons-material';
 import { usePageTheme } from '../hooks/usePageTheme';
-import { getTransactions } from '../data/dataStore';
+import { useEntries } from '../hooks/useEntries';
 import { format, sub, parseISO } from 'date-fns';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -197,11 +197,9 @@ const ChartTip = ({ active, payload, label, darkMode }) => {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 const Insights = () => {
-    const [rows, setRows] = useState([]);
+    const { rows, loading, error } = useEntries();
     const pt = usePageTheme();
     const { darkMode } = pt;
-
-    useEffect(() => { setRows(getTransactions()); }, []);
 
     const monthlyMap   = useMemo(() => buildMonthly(rows, 12), [rows]);
     const forecastData = useMemo(() => buildForecast(monthlyMap, 6), [monthlyMap]);
@@ -224,6 +222,18 @@ const Insights = () => {
     const cardBord  = darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.07)';
     const titleColor = darkMode ? '#f0f0f0' : '#1a1a1a';
     const subColor   = darkMode ? 'rgba(240,240,240,0.6)' : '#555';
+
+    if (loading) return (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ width: 48, height: 48, borderRadius: '50%', border: '4px solid rgba(160,21,24,0.15)', borderTopColor: '#a01518', animation: 'spin 0.8s linear infinite', '@keyframes spin': { to: { transform: 'rotate(360deg)' } } }} />
+            <Typography sx={{ color: 'text.secondary', fontWeight: 500 }}>Analyzing data…</Typography>
+        </Box>
+    );
+    if (error) return (
+        <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="error" sx={{ fontWeight: 600 }}>{error}</Typography>
+        </Box>
+    );
 
     return (
         <Box sx={{ p:{ xs:2, sm:3, md:4 }, background:pt.pageBg, minHeight:'100vh', position:'relative',

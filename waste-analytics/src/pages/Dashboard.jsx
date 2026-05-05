@@ -1,4 +1,4 @@
-import { getTransactions } from '../data/dataStore';
+import { useEntries } from '../hooks/useEntries';
 import React, { useMemo, useState, useEffect } from 'react';
 import { Grid, Box, Typography, Paper, Chip, Avatar, IconButton, Tooltip } from '@mui/material';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
@@ -120,7 +120,7 @@ const StatCard = ({ title, value, unit, icon: Icon, gradient, percentage, delay 
 const Dashboard = () => {
     const now = new Date();
     const [selectedMonth, setSelectedMonth] = useState(format(now, 'yyyy-MM'));
-    const [transactions, setTransactions] = useState([]);
+    const { rows: transactions, loading, error } = useEntries();
 
     const prevMonth = () => {
         const [y, m] = selectedMonth.split('-').map(Number);
@@ -133,10 +133,6 @@ const Dashboard = () => {
         if (d <= now) setSelectedMonth(format(d, 'yyyy-MM'));
     };
     const isCurrentMonth = selectedMonth === format(now, 'yyyy-MM');
-
-    useEffect(() => {
-        setTransactions(getTransactions());
-    }, []);
 
     // --- Data Processing ---
     const kpiData = useMemo(() => {
@@ -203,6 +199,18 @@ const Dashboard = () => {
     }, [selectedMonth, transactions]);
 
     const pt = usePageTheme();
+
+    if (loading) return (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ width: 48, height: 48, borderRadius: '50%', border: '4px solid rgba(160,21,24,0.15)', borderTopColor: '#a01518', animation: 'spin 0.8s linear infinite', '@keyframes spin': { to: { transform: 'rotate(360deg)' } } }} />
+            <Typography sx={{ color: 'text.secondary', fontWeight: 500 }}>Loading dashboard data…</Typography>
+        </Box>
+    );
+    if (error) return (
+        <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="error" sx={{ fontWeight: 600 }}>{error}</Typography>
+        </Box>
+    );
 
     return (
         <Box sx={{
